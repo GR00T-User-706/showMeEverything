@@ -9,7 +9,7 @@ This is that tool.
 
 ## What it does
 
-`guts` searches **everything**:
+`showMeEverything` searches **everything**:
 - Your PATH (every file, every directory)
 - Loaded Zsh commands, aliases, functions, builtins
 - manpage descriptions
