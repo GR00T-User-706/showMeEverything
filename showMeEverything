@@ -1,0 +1,279 @@
+#!/usr/bin/zsh
+header0() {
+    echo "#=========================================================#"
+    echo "$1"
+    echo "#=========================================================#"
+    }
+
+footer() {
+    local TODAY="$(date +%c)"
+    local info="$(echo ${TODAY} ${SHELL} ${USER} ${HOST})"
+    header0 "$info"
+}
+
+search_path() {
+    local info="Searching \$PATH for $1..."
+    header0 "$info"
+    for dir in $path; do
+        find "$dir" -not -path "$HOME/.cache/*" -iname "*$1*" 2>/dev/null
+    done
+#    echo $path | tr ' ' '\n' | xargs -I{} ls {} | sort -u | grep "$1"
+}
+
+search_zsh_cmds() {
+    local info="Searching loaded Zsh commands for $1..."
+    header0 "$info"
+    print -rl -- ${(k)commands} | grep "$1"
+}
+
+search_manpages() {
+    local info="Searching manpage descriptions for $1..."
+    header0 "$info"
+    local wcs="*$1*"
+    if command -v apropos >/dev/null 2>&1; then
+        apropos -w "$wcs" | grep "$1"
+    fi
+}
+
+pacman_full_repo_search() {
+    local info="Searching Pacman repo for $1..."
+    header0 "$info"
+    local query="$1"
+    pacman -Sl 2>/dev/null | grep -i -- "$query"
+}
+
+pacman_search_not_installed() {
+    local info="Searching Pacman for packages not installed: $1..."
+    header0 "$info"
+    local query="$1"
+    comm -23 \
+    <(pacman -Slq | grep -i -- "$query" | sort) \
+    <(pacman -Qq | sort)
+}
+
+search_builtins() {
+    local info="Searching shell builtins for $1..."
+    header0 "$info"
+    print -rl -- ${(k)builtins} | grep "$1"
+}
+
+search_aliases() {
+    local info="Searching shell aliases for $1..."
+    header0 "$info"
+    alias | grep "$1"
+}
+
+search_zsh_functions() {
+    local info="Searching loaded Zsh functions for $1..."
+    header0 "$info"
+    print -rl -- ${(k)functions} | grep "$1"
+}
+
+search_systemd_units() {
+    local info="Searching systemd unit files for $1..."
+    header0 "$info"
+    systemctl list-unit-files | grep "$1"
+}
+
+search_pacman_files_db() {
+    local info="Searching Pacman file database for $1..."
+    header0 "$info"
+    pacman -F "$1"
+}
+
+search_installed_packages() {
+    local info="Searching installed packages for $1..."
+    header0 "$info"
+    pacman -Q | grep "$1"
+}
+
+search_running_processes() {
+    local info="Searching running processes for $1..."
+    header0 "$info"
+    ps aux | grep "$1"
+}
+
+loaded_kernel_modules() {
+    local info="Searching loaded kernel modules for $1..."
+    header0 "$info"
+    lsmod | grep "$1"
+}
+
+search_home_directory() {
+    local info="Searching the home directory \$HOME for $1..."
+    header0 "$info"
+    if [[ -z "$1" ]]; then
+        # empty string → full recursive listing
+        ls -AlFR $HOME
+    else
+        # non-empty string → only match what you want
+        print -rl -- $HOME/**/*"$1"* 2>/dev/null
+        ls -AlFR $HOME 2>/dev/null | grep -- "$1"
+    fi
+}
+
+
+help() {
+    echo -e "
+--all | -A <STRING>                        search commands, manpages, packages, and filesystem for <string> \n
+--aliases | -a <STRING>                    search shell aliases for <STRING> \n
+--builtins | -B <STRING>                   search shell builtins for <STRING> \n
+--command | -c <STRING>                    search for <STRING> in command list \n
+--files | -F <STRING>                      search Pacman file database for <STRING> \n
+--functions | -f <STRING>                  search loaded Zsh functions for <STRING> \n
+--help | -h                                print this help message \n
+--home | -H <STRING>                       search your \$HOME directory for <STRING> \n
+--installed | -i <STRING>                  search installed packages for <STRING> \n
+--modules | -m <STRING>                    search loaded kernel modules for <STRING> \n
+--manpages <STRING>                        search manpage descriptions for <STRING> \n
+--packages | -p | -pkg <STRING>            search the package manager database for <STRING> \n
+--path | -P <STRING>                       search the shell's \$PATH for <STRING> \n
+--process | -x <STRING>                    search running processes for <STRING> \n
+--systemd | -s <STRING>                    search systemd unit files for <STRING> \n
+--system | -R <STRING>                     search system directories (/usr, /etc, /sys, ...) for <STRING> \n
+Note: each search module prints a header and raw results; no lines are filtered or removed."
+}
+search_system_dirs() {
+    local info="Searching system directories (/usr, /etc, /sys, /var, /opt, /boot, /lib, /bin, /sbin) for $1..."
+    header0 "$info"
+
+    # List of directories to search (only those that actually exist)
+    local dirs=(/usr /etc /sys /var /opt /boot /lib /bin /sbin)
+
+    for d in $dirs; do
+        if [[ -d $d ]]; then
+            # Find files (and optionally directories) whose name contains the pattern
+            find "$d" -iname "*$1*" 2>/dev/null
+        fi
+    done
+}
+
+search() {
+    case "$1" in
+        --all|-A)
+            shift
+            echo ">>==============================================================================================================<<"
+            search_path "$1"
+            search_zsh_cmds "$1"
+            search_builtins "$1"
+            search_aliases "$1"
+            search_zsh_functions "$1"
+            echo ">>==============================================================================================================<<"
+            echo ">>==============================================================================================================<<"
+            search_manpages "$1"
+            search_systemd_units "$1"
+            search_running_processes "$1"
+            loaded_kernel_modules "$1"
+            echo ">>==============================================================================================================<<"
+            echo ">>==============================================================================================================<<"
+            pacman_full_repo_search "$1"
+            search_installed_packages "$1"
+            search_pacman_files_db "$1"
+            pacman_search_not_installed "$1"
+            echo ">>==============================================================================================================<<"
+            echo ">>==============================================================================================================<<"
+            search_home_directory "$1"
+            search_system_dirs "$1"
+            echo ">>==============================================================================================================<<"
+            footer
+        ;;
+
+        --aliases|-a)
+            shift
+            search_aliases "$1"
+            footer
+        ;;
+
+        --builtins|-B)
+            shift
+            search_builtins "$1"
+            footer
+        ;;
+
+        --command|-c)
+            shift
+            search_zsh_cmds "$1"
+            footer
+        ;;
+
+        --files|-F)
+            shift
+            search_pacman_files_db "$1"
+            footer
+        ;;
+
+        --functions|-f)
+            shift
+            search_zsh_functions "$1"
+            footer
+        ;;
+
+        --help|-h)
+            echo "Usage search <option> <argument>"
+            echo "if <argument> is left blank it will search everything"
+            help
+            echo "<STRING> will get expanded and completed so cli will become nmcli, dhclient, or clit, if any of those are installed or in your package managers database"
+        ;;
+
+        --home|-H)
+            shift
+            search_home_directory "$1"
+            footer
+        ;;
+
+        --installed|-i)
+            shift
+            search_installed_packages "$1"
+            footer
+        ;;
+
+        --manpages)
+            shift
+            search_manpages "$1"
+            footer
+        ;;
+
+        --modules|-m)
+            shift
+            loaded_kernel_modules "$1"
+            footer
+        ;;
+
+        --process|-x)
+            shift
+            search_running_processes "$1"
+            footer
+        ;;
+
+        --packages|-p|--pkg)
+            shift
+            pacman_full_repo_search "$1"
+            pacman_search_not_installed "$1"
+            search_manpages "$1"
+            footer
+        ;;
+
+        --path|-P)
+            shift
+            search_path "$1"
+            footer
+        ;;
+
+        --systemd|-s)
+            shift
+            search_systemd_units "$1"
+            footer
+        ;;
+
+        --system|-R)
+            shift
+            search_system_dirs "$1"
+            footer
+        ;;
+
+        *)
+            echo "Usage search <option> <argument>"
+            echo "try search --help for more info"
+        ;;
+    esac
+}
