@@ -1,9 +1,9 @@
-#!/usr/bin/zsh
+#!/usr/bin/env bash
 header0() {
     echo "#=========================================================#"
     echo "$1"
     echo "#=========================================================#"
-    }
+}
 
 footer() {
     local TODAY="$(date +%c)"
@@ -11,141 +11,326 @@ footer() {
     header0 "$info"
 }
 
+if [ -n "${ZSH_VERSION:-}" ]; then
+    current_shell="zsh"
+elif [ -n "${BASH_VERSION:-}" ]; then
+    current_shell="bash"
+else
+    current_shell="$(basename "$SHELL")"
+fi
+
+[ "$current_shell" = "bash" ] && shopt -s expand_aliases 2>/dev/null
+
 search_path() {
     local info="Searching \$PATH for $1..."
+    local dir
     header0 "$info"
-    for dir in $path; do
+
+    IFS=':'
+    for dir in $PATH; do
+        [ -d "$dir" ] || continue
         find "$dir" -not -path "$HOME/.cache/*" -iname "*$1*" 2>/dev/null
     done
-#    echo $path | tr ' ' '\n' | xargs -I{} ls {} | sort -u | grep "$1"
+    unset IFS
 }
 
-search_zsh_cmds() {
-    local info="Searching loaded Zsh commands for $1..."
+search_loaded_commands() {
+    local info="Searching loaded shell commands for $1..."
     header0 "$info"
-    print -rl -- ${(k)commands} | grep "$1"
+
+    if [ "$current_shell" = "zsh" ]; then
+        eval 'print -rl -- ${(k)commands}' | grep -- "$1"
+    elif [ "$current_shell" = "bash" ]; then
+        compgen -c | grep -- "$1"
+    fi
 }
 
 search_manpages() {
     local info="Searching manpage descriptions for $1..."
-    header0 "$info"
     local wcs="*$1*"
+    header0 "$info"
+
     if command -v apropos >/dev/null 2>&1; then
-        apropos -w "$wcs" | grep "$1"
+        apropos -w "$wcs" | grep -- "$1"
+    fi
+}
+
+get_package_manager() {
+    if command -v pacman >/dev/null 2>&1; then
+        echo "pacman"
+    elif command -v apt-cache >/dev/null 2>&1 && command -v dpkg-query >/dev/null 2>&1; then
+        echo "apt"
+    elif command -v dnf >/dev/null 2>&1; then
+        echo "dnf"
+    elif command -v zypper >/dev/null 2>&1; then
+        echo "zypper"
+    elif command -v apk >/dev/null 2>&1; then
+        echo "apk"
     fi
 }
 
 pacman_full_repo_search() {
     local info="Searching Pacman repo for $1..."
     header0 "$info"
-    local query="$1"
-    pacman -Sl 2>/dev/null | grep -i -- "$query"
+    pacman -Sl 2>/dev/null | grep -i -- "$1"
+}
+
+apt_full_repo_search() {
+    local info="Searching APT repo for $1..."
+    header0 "$info"
+    apt-cache search -- "$1" 2>/dev/null
+}
+
+dnf_full_repo_search() {
+    local info="Searching DNF repo for $1..."
+    header0 "$info"
+    dnf list available 2>/dev/null | grep -i -- "$1"
+}
+
+zypper_full_repo_search() {
+    local info="Searching Zypper repo for $1..."
+    header0 "$info"
+    zypper search 2>/dev/null | grep -i -- "$1"
+}
+
+apk_full_repo_search() {
+    local info="Searching APK repo for $1..."
+    header0 "$info"
+    apk search 2>/dev/null | grep -i -- "$1"
+}
+
+search_package_repo() {
+    case "$(get_package_manager)" in
+        pacman) pacman_full_repo_search "$1" ;;
+        apt) apt_full_repo_search "$1" ;;
+        dnf) dnf_full_repo_search "$1" ;;
+        zypper) zypper_full_repo_search "$1" ;;
+        apk) apk_full_repo_search "$1" ;;
+    esac
 }
 
 pacman_search_not_installed() {
     local info="Searching Pacman for packages not installed: $1..."
     header0 "$info"
-    local query="$1"
     comm -23 \
-    <(pacman -Slq | grep -i -- "$query" | sort) \
-    <(pacman -Qq | sort)
+        <(pacman -Slq 2>/dev/null | grep -i -- "$1" | sort -u) \
+        <(pacman -Qq 2>/dev/null | sort -u)
+}
+
+apt_search_not_installed() {
+    local info="Searching APT for packages not installed: $1..."
+    header0 "$info"
+    comm -23 \
+        <(apt-cache pkgnames 2>/dev/null | grep -i -- "$1" | sort -u) \
+        <(dpkg-query -W -f='${binary:Package}\n' 2>/dev/null | sort -u)
+}
+
+dnf_search_not_installed() {
+    local info="Searching DNF for packages not installed: $1..."
+    header0 "$info"
+    comm -23 \
+        <(dnf list available 2>/dev/null | awk 'NR > 1 {print $1}' | sed 's/\.[^.[:space:]]*$//' | grep -i -- "$1" | sort -u) \
+        <(dnf list installed 2>/dev/null | awk 'NR > 1 {print $1}' | sed 's/\.[^.[:space:]]*$//' | sort -u)
+}
+
+zypper_search_not_installed() {
+    local info="Searching Zypper for packages not installed: $1..."
+    header0 "$info"
+    comm -23 \
+        <(zypper search 2>/dev/null | awk 'NR > 4 {print $3}' | grep -i -- "$1" | sort -u) \
+        <(rpm -qa --qf '%{NAME}\n' 2>/dev/null | sort -u)
+}
+
+apk_search_not_installed() {
+    local info="Searching APK for packages not installed: $1..."
+    header0 "$info"
+    comm -23 \
+        <(apk search 2>/dev/null | sed 's/-[0-9].*$//' | grep -i -- "$1" | sort -u) \
+        <(apk info 2>/dev/null | sort -u)
+}
+
+search_packages_not_installed() {
+    case "$(get_package_manager)" in
+        pacman) pacman_search_not_installed "$1" ;;
+        apt) apt_search_not_installed "$1" ;;
+        dnf) dnf_search_not_installed "$1" ;;
+        zypper) zypper_search_not_installed "$1" ;;
+        apk) apk_search_not_installed "$1" ;;
+    esac
 }
 
 search_builtins() {
     local info="Searching shell builtins for $1..."
     header0 "$info"
-    print -rl -- ${(k)builtins} | grep "$1"
+
+    if [ "$current_shell" = "zsh" ]; then
+        eval 'print -rl -- ${(k)builtins}' | grep -- "$1"
+    elif [ "$current_shell" = "bash" ]; then
+        compgen -b | grep -- "$1"
+    fi
 }
 
 search_aliases() {
     local info="Searching shell aliases for $1..."
     header0 "$info"
-    alias | grep "$1"
+    alias | grep -- "$1"
 }
 
-search_zsh_functions() {
-    local info="Searching loaded Zsh functions for $1..."
+search_shell_functions() {
+    local info="Searching loaded shell functions for $1..."
     header0 "$info"
-    print -rl -- ${(k)functions} | grep "$1"
+
+    if [ "$current_shell" = "zsh" ]; then
+        eval 'print -rl -- ${(k)functions}' | grep -- "$1"
+    elif [ "$current_shell" = "bash" ]; then
+        compgen -A function | grep -- "$1"
+    fi
 }
 
 search_systemd_units() {
     local info="Searching systemd unit files for $1..."
     header0 "$info"
-    systemctl list-unit-files | grep "$1"
+
+    if command -v systemctl >/dev/null 2>&1; then
+        systemctl list-unit-files 2>/dev/null | grep -- "$1"
+    fi
 }
 
-search_pacman_files_db() {
+pacman_files_db_search() {
     local info="Searching Pacman file database for $1..."
     header0 "$info"
-    pacman -F "$1"
+    pacman -F "$1" 2>/dev/null
+}
+
+apt_files_db_search() {
+    local info="Searching installed APT/DPKG file ownership for $1..."
+    header0 "$info"
+    dpkg -S "*$1*" 2>/dev/null
+}
+
+dnf_files_db_search() {
+    local info="Searching DNF/RPM file ownership for $1..."
+    header0 "$info"
+    repoquery -f "*$1*" 2>/dev/null
+}
+
+zypper_files_db_search() {
+    local info="Searching Zypper/RPM file ownership for $1..."
+    header0 "$info"
+    rpm -qal 2>/dev/null | grep -i -- "$1"
+}
+
+apk_files_db_search() {
+    local info="Searching APK file ownership for $1..."
+    header0 "$info"
+    apk info -L 2>/dev/null | grep -i -- "$1"
+}
+
+search_package_files_db() {
+    case "$(get_package_manager)" in
+        pacman) pacman_files_db_search "$1" ;;
+        apt) apt_files_db_search "$1" ;;
+        dnf) dnf_files_db_search "$1" ;;
+        zypper) zypper_files_db_search "$1" ;;
+        apk) apk_files_db_search "$1" ;;
+    esac
+}
+
+pacman_installed_packages_search() {
+    local info="Searching installed Pacman packages for $1..."
+    header0 "$info"
+    pacman -Q 2>/dev/null | grep -i -- "$1"
+}
+
+apt_installed_packages_search() {
+    local info="Searching installed APT packages for $1..."
+    header0 "$info"
+    dpkg-query -W 2>/dev/null | grep -i -- "$1"
+}
+
+dnf_installed_packages_search() {
+    local info="Searching installed DNF packages for $1..."
+    header0 "$info"
+    dnf list installed 2>/dev/null | grep -i -- "$1"
+}
+
+zypper_installed_packages_search() {
+    local info="Searching installed Zypper packages for $1..."
+    header0 "$info"
+    rpm -qa --qf '%{NAME} %{VERSION}-%{RELEASE}\n' 2>/dev/null | grep -i -- "$1"
+}
+
+apk_installed_packages_search() {
+    local info="Searching installed APK packages for $1..."
+    header0 "$info"
+    apk info 2>/dev/null | grep -i -- "$1"
 }
 
 search_installed_packages() {
-    local info="Searching installed packages for $1..."
-    header0 "$info"
-    pacman -Q | grep "$1"
+    case "$(get_package_manager)" in
+        pacman) pacman_installed_packages_search "$1" ;;
+        apt) apt_installed_packages_search "$1" ;;
+        dnf) dnf_installed_packages_search "$1" ;;
+        zypper) zypper_installed_packages_search "$1" ;;
+        apk) apk_installed_packages_search "$1" ;;
+    esac
 }
 
 search_running_processes() {
     local info="Searching running processes for $1..."
     header0 "$info"
-    ps aux | grep "$1"
+    ps aux 2>/dev/null | grep -- "$1"
 }
 
 loaded_kernel_modules() {
     local info="Searching loaded kernel modules for $1..."
     header0 "$info"
-    lsmod | grep "$1"
+
+    if command -v lsmod >/dev/null 2>&1; then
+        lsmod 2>/dev/null | grep -- "$1"
+    fi
 }
 
 search_home_directory() {
     local info="Searching the home directory \$HOME for $1..."
     header0 "$info"
-    if [[ -z "$1" ]]; then
-        # empty string → full recursive listing
-        ls -AlFR $HOME
+
+    if [ -z "$1" ]; then
+        find "$HOME" -mindepth 1 2>/dev/null
     else
-        # non-empty string → only match what you want
-        print -rl -- $HOME/**/*"$1"* 2>/dev/null
-        ls -AlFR $HOME 2>/dev/null | grep -- "$1"
+        find "$HOME" -mindepth 1 -iname "*$1*" 2>/dev/null
     fi
 }
 
+search_system_dirs() {
+    local info="Searching system directories (/usr, /etc, /sys, /var, /opt, /boot, /lib, /bin, /sbin) for $1..."
+    local d
+    header0 "$info"
+
+    for d in /usr /etc /sys /var /opt /boot /lib /bin /sbin; do
+        [ -d "$d" ] && find "$d" -iname "*$1*" 2>/dev/null
+    done
+}
 
 help() {
     echo -e "
 --all | -A <STRING>                        search commands, manpages, packages, and filesystem for <string> \n
 --aliases | -a <STRING>                    search shell aliases for <STRING> \n
 --builtins | -B <STRING>                   search shell builtins for <STRING> \n
---command | -c <STRING>                    search for <STRING> in command list \n
---files | -F <STRING>                      search Pacman file database for <STRING> \n
---functions | -f <STRING>                  search loaded Zsh functions for <STRING> \n
+--command | -c <STRING>                    search for <STRING> in loaded shell command list \n
+--files | -F <STRING>                      search the detected package file database for <STRING> \n
+--functions | -f <STRING>                  search loaded shell functions for <STRING> \n
 --help | -h                                print this help message \n
 --home | -H <STRING>                       search your \$HOME directory for <STRING> \n
 --installed | -i <STRING>                  search installed packages for <STRING> \n
 --modules | -m <STRING>                    search loaded kernel modules for <STRING> \n
 --manpages <STRING>                        search manpage descriptions for <STRING> \n
---packages | -p | -pkg <STRING>            search the package manager database for <STRING> \n
+--packages | -p | --pkg <STRING>           search the detected package manager database for <STRING> \n
 --path | -P <STRING>                       search the shell's \$PATH for <STRING> \n
 --process | -x <STRING>                    search running processes for <STRING> \n
 --systemd | -s <STRING>                    search systemd unit files for <STRING> \n
 --system | -R <STRING>                     search system directories (/usr, /etc, /sys, ...) for <STRING> \n
-Note: each search module prints a header and raw results; no lines are filtered or removed."
-}
-search_system_dirs() {
-    local info="Searching system directories (/usr, /etc, /sys, /var, /opt, /boot, /lib, /bin, /sbin) for $1..."
-    header0 "$info"
-
-    # List of directories to search (only those that actually exist)
-    local dirs=(/usr /etc /sys /var /opt /boot /lib /bin /sbin)
-
-    for d in $dirs; do
-        if [[ -d $d ]]; then
-            # Find files (and optionally directories) whose name contains the pattern
-            find "$d" -iname "*$1*" 2>/dev/null
-        fi
-    done
+Note: each search module prints a header and raw results; no lines are filtered or removed beyond explicit search arguments and hidden stderr."
 }
 
 search() {
@@ -154,10 +339,10 @@ search() {
             shift
             echo ">>==============================================================================================================<<"
             search_path "$1"
-            search_zsh_cmds "$1"
+            search_loaded_commands "$1"
             search_builtins "$1"
             search_aliases "$1"
-            search_zsh_functions "$1"
+            search_shell_functions "$1"
             echo ">>==============================================================================================================<<"
             echo ">>==============================================================================================================<<"
             search_manpages "$1"
@@ -166,10 +351,10 @@ search() {
             loaded_kernel_modules "$1"
             echo ">>==============================================================================================================<<"
             echo ">>==============================================================================================================<<"
-            pacman_full_repo_search "$1"
+            search_package_repo "$1"
             search_installed_packages "$1"
-            search_pacman_files_db "$1"
-            pacman_search_not_installed "$1"
+            search_package_files_db "$1"
+            search_packages_not_installed "$1"
             echo ">>==============================================================================================================<<"
             echo ">>==============================================================================================================<<"
             search_home_directory "$1"
@@ -192,19 +377,19 @@ search() {
 
         --command|-c)
             shift
-            search_zsh_cmds "$1"
+            search_loaded_commands "$1"
             footer
         ;;
 
         --files|-F)
             shift
-            search_pacman_files_db "$1"
+            search_package_files_db "$1"
             footer
         ;;
 
         --functions|-f)
             shift
-            search_zsh_functions "$1"
+            search_shell_functions "$1"
             footer
         ;;
 
@@ -212,7 +397,7 @@ search() {
             echo "Usage search <option> <argument>"
             echo "if <argument> is left blank it will search everything"
             help
-            echo "<STRING> will get expanded and completed so cli will become nmcli, dhclient, or clit, if any of those are installed or in your package managers database"
+            echo "<STRING> will be matched literally inside each backend's raw results"
         ;;
 
         --home|-H)
@@ -247,8 +432,8 @@ search() {
 
         --packages|-p|--pkg)
             shift
-            pacman_full_repo_search "$1"
-            pacman_search_not_installed "$1"
+            search_package_repo "$1"
+            search_packages_not_installed "$1"
             search_manpages "$1"
             footer
         ;;
@@ -277,3 +462,19 @@ search() {
         ;;
     esac
 }
+
+is_sourced() {
+    if [ -n "${ZSH_VERSION:-}" ]; then
+        case "${ZSH_EVAL_CONTEXT:-}" in
+            *:file) return 0 ;;
+        esac
+    elif [ -n "${BASH_VERSION:-}" ]; then
+        [ "${BASH_SOURCE[0]}" != "$0" ] && return 0
+    fi
+
+    return 1
+}
+
+if ! is_sourced; then
+    search "$@"
+fi

@@ -9,27 +9,29 @@ This is that tool.
 showMeEverything searches everything:
 
   - Your $PATH (every file, every directory)
-  - Loaded Zsh commands, aliases, functions, and builtins
+  - Loaded shell commands, aliases, functions, and builtins
   - manpage descriptions
   - systemd unit files
   - Running processes
   - Loaded kernel modules
   - System directories (/usr, /etc, /sys, /var, ...)
   - Your home directory
-  - Package databases (currently Arch Linux)
+  - Package databases on supported Linux distributions
 
 ## Philosophy
 
-  - Zero dependencies – pure Zsh + coreutils
+  - Zero dependencies – shell + coreutils + whatever your distro already uses to manage packages
   - Raw output – no filtering, no pretty tables
   - Full system interrogation – online or offline
   - --all "" dumps everything. Yes, really.
+  - One function per job so every probe stays separated and obvious
 
 ## Current Support
 
-  - Package manager: Arch Linux (pacman) – APT detection planned
+  - Package managers: pacman, APT/dpkg, dnf, zypper, and apk
   - Filesystem searches (--path, --system, --home): Any Linux distribution
-  - Shell: Zsh – bash/sh support planned
+  - Shell execution: Zsh first, with Bash as the compatibility path
+  - Shell sourcing: Supported in both Bash and Zsh with Zsh-native probes kept first
 
 ## Installation
 
@@ -46,9 +48,9 @@ Two ways to use it:
 
    ### 2. Source it from your shell config
 
-      -  Add this line to ~/.zshrc, ~/.profile, or similar:
+      -  Add this line to ~/.bashrc, ~/.zshrc, ~/.profile, or similar:
       -  ```source /path/to/showMeEverything```
-      -  Note: ~/.bashrc is not recommended – this is a Zsh script (for now)
+      -  Note: executable mode is the most portable option because the script runs under Bash either way
 
 Pick one method. Don't do both.
 
@@ -59,6 +61,7 @@ showMeEverything --all systemd        # everything related to systemd
 showMeEverything --command git        # just commands named git
 showMeEverything --system "conf"      # system files with "conf" in the name
 showMeEverything --home "" > home.txt # entire home directory listing
+showMeEverything --packages bash      # package manager aware package search
 showMeEverything --help               # shows all options
 ```
 ## If you renamed the script (e.g., to search), just use that name instead.
