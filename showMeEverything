@@ -78,7 +78,11 @@ pacman_full_repo_search() {
 apt_full_repo_search() {
     local info="Searching APT repo for $1..."
     header0 "$info"
-    apt-cache search -- "$1" 2>/dev/null
+    if [ -z "$1" ]; then
+        apt list 2>/dev/null
+    else
+        apt list 2>/dev/null | grep -i -- "$1"
+    fi
 }
 
 dnf_full_repo_search() {
