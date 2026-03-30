@@ -1,0 +1,18 @@
+[Desktop Entry]
+Categories=Utility;System;
+Comment[en_US]=Powerful System Search Engine Fallback Window
+Comment=Powerful System Search Engine Fallback Window
+Exec=/usr/local/sbin/search_gui
+GenericName[en_US]=search_gui.py
+GenericName=search_gui.py
+Icon=/home/lykthornyx/github_repos/pub/showMeEverything/assets/showMeEverything.png
+MimeType=
+Name[en_US]=ShowMeEveryPy
+Name=ShowMeEveryPy
+Path=
+StartupNotify=true
+Terminal=false
+TerminalOptions=
+Type=Application
+X-KDE-SubstituteUID=false
+X-KDE-Username=

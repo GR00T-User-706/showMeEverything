@@ -1,0 +1,18 @@
+[Desktop Entry]
+Categories=Utility;System;
+Comment[en_US]=Powerful System Search Engine
+Comment=Powerful System Search Engine
+Exec=/usr/local/sbin/search-gui
+GenericName[en_US]=
+GenericName=
+Icon=/home/lykthornyx/github_repos/pub/showMeEverything/assets/showMeEverything.png
+MimeType=
+Name[en_US]=Show Me Everything
+Name=Show Me Everything
+Path=
+StartupNotify=true
+Terminal=false
+TerminalOptions=
+Type=Application
+X-KDE-SubstituteUID=false
+X-KDE-Username=
