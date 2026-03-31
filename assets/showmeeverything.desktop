@@ -1,11 +1,11 @@
 [Desktop Entry]
 Categories=Utility;System;
-Comment[en_US]=Powerful System Search Engine
-Comment=Powerful System Search Engine
-Exec=/usr/local/sbin/search-gui
+Comment[en_US]=Powerful System Search Engine, QML/C++ KDE NAtive
+Comment=Powerful System Search Engine, QML/C++ KDE NAtive
+Exec=/usr/local/bin/showmeeverything_gui
 GenericName[en_US]=
 GenericName=
-Icon=/home/lykthornyx/github_repos/pub/showMeEverything/assets/showMeEverything.png
+Icon=/usr/local/share/icons/showMeEverything.png
 MimeType=
 Name[en_US]=Show Me Everything
 Name=Show Me Everything
@@ -16,3 +16,4 @@ TerminalOptions=
 Type=Application
 X-KDE-SubstituteUID=false
 X-KDE-Username=
+#QML GUI
