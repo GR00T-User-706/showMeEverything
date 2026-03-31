@@ -5,7 +5,7 @@ import subprocess
 import threading
 
 # Hardcode the path to your search symlink
-SEARCH_SCRIPT = "/usr/local/sbin/search"
+SEARCH_SCRIPT = "/usr/local/bin/search"
 
 # Allowed arguments (example: only some flags)
 ALLOWED_ARGS = [

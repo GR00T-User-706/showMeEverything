@@ -44,7 +44,7 @@ void SearchBackend::runSearch(const QString& args)
     }
 
     m_process = new QProcess(this);
-    m_process->setProgram("/usr/local/sbin/search");
+    m_process->setProgram("/usr/local/bin/showMeEverything");
     m_process->setArguments(argList);
 
     connect(m_process, &QProcess::readyReadStandardOutput, this,
@@ -130,4 +130,15 @@ void SearchBackend::copyToClipboard()
     QClipboard* clipboard = QGuiApplication::clipboard();
     clipboard->setText(m_output);
     appendOutput("--- Copied to clipboard ---\n");
+}
+void SearchBackend::stopSearch() {
+        if (m_process && m_running){
+            m_process->terminate();  //SIGTERM
+            // If SIGTERM doesn't work after 2 seconds, kill it
+            QTimer::singleShot(2000, this, [this]() {
+                if (m_running && m_process)
+                    m_process->kill();
+            });
+            appendOutput("\n--- Search interrupted by user ---\n");
+        }
 }

@@ -202,6 +202,18 @@ ApplicationWindow {
                 text: "Scroll to Bottom"
                 onClicked: outputListView.positionViewAtEnd()
             }
+            Button {
+                text: "Stop"
+                enabled: searchBackend.running
+                onClicked: searchBackend.stopSearch()
+            }
+            Shortcut {
+                sequence: StandardKey.Cancel
+                onActivated: {
+                    if (searchBackend.running)
+                        searchBackend.stopSearch()
+                }
+            }
             Text {
                 text: "Lines: " + outputModel.count
                 font.pointSize: 9

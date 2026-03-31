@@ -1,17 +1,18 @@
-How To Build This Template (don't forget to remove this file from your released project)
--=-=-=-=-=-=-=-=-=-=-=-=-=
+How To Build the showMeeverything QML/C++ GUI
 
 --- On Unix:
 
-cd <project_name_path>
-qmake
+cd ~/showMeEverything/showmeeverything_gui
+qmake showmeeverything_gui.pro
 make
-make install or su -c 'make install'
+sudo make install   # or su -c 'make install'
 
-This template needs Qt5.
+This project requires Qt5.
 
-Please send all comments to:
-Anne-Marie Mahfouf
-annma@kde.org
+Optional: If you want the CLI in a different location, adjust the `target.path` in the .pro file or create symlinks.
 
-Last update: April 2013
+Send all comments to:
+GR00T-User-706
+crypto_code_weave_syndicate@proton.me
+
+Last update: March 2026
