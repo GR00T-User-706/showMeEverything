@@ -1,5 +1,7 @@
 #include "searchbackend.h"
 #include <QDebug>
+#include <QUrl>
+#include <QTimer>
 
 SearchBackend::SearchBackend(QObject* parent)
     : QObject(parent)
