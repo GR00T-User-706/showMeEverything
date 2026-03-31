@@ -13,7 +13,7 @@
 showMeEverything
 ├── assets
 │   ├── search_gui.desktop       # QML/C++ GUI desktop entry
-│   ├── showmeeverything.desktop # CLI desktop entry (optional)
+│   ├── showmeeverything.desktop # PY-TK desktop entry fallback
 │   └── showMeEverything.png    # icon
 ├── install.sh                   # Installation script
 ├── LICENSE
