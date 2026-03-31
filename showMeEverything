@@ -42,9 +42,9 @@ search_loaded_commands() {
     header0 "$info"
 
     if [ "$current_shell" = "zsh" ]; then
-        eval 'print -rl -- ${(k)commands}' | grep -- "$1"
+        eval 'print -rl -- ${(k)commands}' | grep -i -- "$1"
     elif [ "$current_shell" = "bash" ]; then
-        compgen -c | grep -- "$1"
+        compgen -c | grep -i -- "$1"
     fi
 }
 
@@ -53,9 +53,9 @@ search_builtins() {
     header0 "$info"
 
     if [ "$current_shell" = "zsh" ]; then
-        eval 'print -rl -- ${(k)builtins}' | grep -- "$1"
+        eval 'print -rl -- ${(k)builtins}' | grep -i -- "$1"
     elif [ "$current_shell" = "bash" ]; then
-        compgen -b | grep -- "$1"
+        compgen -b | grep -i -- "$1"
     fi
 }
 
@@ -64,16 +64,16 @@ search_shell_functions() {
     header0 "$info"
 
     if [ "$current_shell" = "zsh" ]; then
-        eval 'print -rl -- ${(k)functions}' | grep -- "$1"
+        eval 'print -rl -- ${(k)functions}' | grep -i -- "$1"
     elif [ "$current_shell" = "bash" ]; then
-        compgen -A function | grep -- "$1"
+        compgen -A function | grep -i -- "$1"
     fi
 }
 
 search_aliases() {
     local info="Searching shell aliases for $1..."
     header0 "$info"
-    alias | grep -- "$1"
+    alias | grep -i -- "$1"
 }
 
 {
@@ -343,7 +343,7 @@ search_manpages() {
     header0 "$info"
 
     if command -v apropos >/dev/null 2>&1; then
-        apropos -w "$wcs" | grep -- "$1"
+        apropos -w "$wcs" | grep -i -- "$1"
     fi
 }
 
@@ -352,14 +352,14 @@ search_systemd_units() {
     header0 "$info"
 
     if command -v systemctl >/dev/null 2>&1; then
-        systemctl list-unit-files 2>/dev/null | grep -- "$1"
+        systemctl list-unit-files 2>/dev/null | grep -i -- "$1"
     fi
 }
 
 search_running_processes() {
     local info="Searching running processes for $1..."
     header0 "$info"
-    ps aux 2>/dev/null | grep -- "$1"
+    ps aux 2>/dev/null | grep -i -- "$1"
 }
 
 loaded_kernel_modules() {
@@ -367,7 +367,7 @@ loaded_kernel_modules() {
     header0 "$info"
 
     if command -v lsmod >/dev/null 2>&1; then
-        lsmod 2>/dev/null | grep -- "$1"
+        lsmod 2>/dev/null | grep -i -- "$1"
     fi
 }
 

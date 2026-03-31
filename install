@@ -9,9 +9,9 @@ NC='\033[0m' # No Color
 
 # --- Detect shell and set SCRIPT_DIR ---
 if [ -n "$ZSH_VERSION" ]; then
-    SCRIPT_DIR="${0:A:h}"               # Zsh
+    SCRIPT_DIR="${0:A:h}" # Zsh
 elif [ -n "$BASH_VERSION" ]; then
-    SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd -P)"   # Bash
+    SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd -P)" # Bash
 else
     echo -e "${RED}Unsupported shell. Only Bash and Zsh are supported.${NC}"
     exit 1
@@ -61,16 +61,14 @@ else
     echo -e "${YELLOW}Qt GUI not built – skipping installation.${NC}"
 fi
 
-# 4. Icon
+# 4. Install icon
 echo "Installing icon..."
-install -d -m 755 /usr/local/share/icons
 install -m 644 "$SCRIPT_DIR/assets/showMeEverything.png" /usr/local/share/icons/showMeEverything.png
 
 # 5. Desktop entries
 echo "Installing desktop entries..."
-install -d -m 755 /usr/local/share/applications
-install -m 644 "$SCRIPT_DIR/assets/showmeeverything.desktop" /usr/local/share/applications/
-install -m 644 "$SCRIPT_DIR/assets/search_gui.desktop" /usr/local/share/applications/
+install -m 644 "$SCRIPT_DIR/assets/com.github.gr00t-user-706.showmeeverything-gui-qml.desktop" /usr/local/share/applications/
+install -m 644 "$SCRIPT_DIR/assets/com.github.gr00t-user-706.showmeeverything-gui-python.desktop" /usr/local/share/applications/
 
 # --- Verification ---
 echo -e "${GREEN}Installation complete!${NC}"
