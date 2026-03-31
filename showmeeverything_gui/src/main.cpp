@@ -1,21 +1,21 @@
+#include "searchbackend.h"
 #include <QApplication>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
-#include "searchbackend.h"
 
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
-  QApplication app(argc, argv);
+    QApplication app(argc, argv);
 
-  app.setOrganizationName("YourName");
-  app.setApplicationName("ShowMeEverything");
-  app.setApplicationDisplayName("Show Me Everything Search Tool");
+    app.setOrganizationName("YourName");
+    app.setApplicationName("ShowMeEverything");
+    app.setApplicationDisplayName("Show Me Everything Search Tool");
 
-  SearchBackend backend;
+    SearchBackend backend;
 
-  QQmlApplicationEngine engine;
-  engine.rootContext()->setContextProperty("searchBackend", &backend);
-  engine.load(QUrl(QStringLiteral("qrc:/src/qml/main.qml")));
+    QQmlApplicationEngine engine;
+    engine.rootContext()->setContextProperty("searchBackend", &backend);
+    engine.load(QUrl(QStringLiteral("qrc:/src/qml/main.qml")));
 
-  return app.exec();
+    return app.exec();
 }
