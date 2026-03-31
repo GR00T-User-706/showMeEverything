@@ -3,9 +3,12 @@ import tkinter as tk
 from tkinter import scrolledtext
 import subprocess
 import threading
+import shutil
 
-# Hardcode the path to your search symlink
-SEARCH_SCRIPT = "/usr/local/bin/search"
+
+SEARCH_SCRIPT = shutil.which("showMeEverything")
+if not SEARCH_SCRIPT:
+    SEARCH_SCRIPT = "/usr/local/bin/showMeEverything"  # fallback
 
 # Allowed arguments (example: only some flags)
 ALLOWED_ARGS = [
