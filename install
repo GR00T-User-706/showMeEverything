@@ -78,8 +78,8 @@ ls -la /usr/local/bin/showMeEverything
 ls -la /usr/local/bin/showmeeverything_tk.py
 [ -f /usr/local/bin/showmeeverything_gui ] && ls -la /usr/local/bin/showmeeverything_gui || echo "Qt GUI not installed"
 ls -la /usr/local/share/icons/showMeEverything.png
-ls -la /usr/local/share/applications/showmeeverything.desktop
-ls -la /usr/local/share/applications/search_gui.desktop
+ls -la /usr/local/share/applications/com.github.gr00t-user-706.showmeeverything-gui-qml.desktop
+ls -la /usr/local/share/applications/com.github.gr00t-user-706.showmeeverything-gui-python.desktop
 
 echo ""
 if [ $QT_BUILD_OK -eq 0 ]; then
