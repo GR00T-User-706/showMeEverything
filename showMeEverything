@@ -1,16 +1,21 @@
 #!/usr/bin/env bash
-header0() {
-    echo "#=========================================================#"
-    echo "$1"
-    echo "#=========================================================#"
+#header and footer functions for global use
+{
+    {
+        header0() {
+            echo "#=========================================================#"
+            echo "$1"
+            echo "#=========================================================#"
+        }
+    }
+    {
+        footer() {
+            local TODAY="$(date +%c)"
+            local info="$(echo "${TODAY} ${SHELL} ${USER} ${HOST}")"
+            header0 "$info"
+        }
+    }
 }
-
-footer() {
-    local TODAY="$(date +%c)"
-    local info="$(echo "${TODAY} ${SHELL} ${USER} ${HOST}")"
-    header0 "$info"
-}
-
 if [ -n "${ZSH_VERSION:-}" ]; then
     current_shell="zsh"
 elif [ -n "${BASH_VERSION:-}" ]; then
@@ -42,9 +47,9 @@ search_loaded_commands() {
     header0 "$info"
 
     if [ "$current_shell" = "zsh" ]; then
-        eval 'print -rl -- ${(k)commands}' | grep -i -- "$1"
+        eval 'print -rl -- ${(k)commands}' | grep -i -E --color=always -- "$1"
     elif [ "$current_shell" = "bash" ]; then
-        compgen -c | grep -i -- "$1"
+        compgen -c | grep -i -E --color=always -- "$1"
     fi
 }
 
@@ -53,9 +58,9 @@ search_builtins() {
     header0 "$info"
 
     if [ "$current_shell" = "zsh" ]; then
-        eval 'print -rl -- ${(k)builtins}' | grep -i -- "$1"
+        eval 'print -rl -- ${(k)builtins}' | grep -i -E --color=always -- "$1"
     elif [ "$current_shell" = "bash" ]; then
-        compgen -b | grep -i -- "$1"
+        compgen -b | grep -i -E --color=always -- "$1"
     fi
 }
 
@@ -64,16 +69,16 @@ search_shell_functions() {
     header0 "$info"
 
     if [ "$current_shell" = "zsh" ]; then
-        eval 'print -rl -- ${(k)functions}' | grep -i -- "$1"
+        eval 'print -rl -- ${(k)functions}' | grep -i -E --color=always -- "$1"
     elif [ "$current_shell" = "bash" ]; then
-        compgen -A function | grep -i -- "$1"
+        compgen -A function | grep -i -E --color=always -- "$1"
     fi
 }
 
 search_aliases() {
     local info="Searching shell aliases for $1..."
     header0 "$info"
-    alias | grep -i -- "$1"
+    alias | grep -i -E --color=always -- "$1"
 }
 
 {
@@ -105,14 +110,14 @@ search_aliases() {
             pacman_full_repo_search() {
                 local info="Searching Pacman repo for $1..."
                 header0 "$info"
-                pacman -Sl 2>/dev/null | grep -i -- "$1"
+                pacman -Sl 2>/dev/null | grep -i -E --color=always -- "$1"
             }
 
             # -------- installed ---------- #
             pacman_installed_packages_search() {
                 local info="Searching installed Pacman packages for $1..."
                 header0 "$info"
-                pacman -Q 2>/dev/null | grep -i -- "$1"
+                pacman -Q 2>/dev/null | grep -i -E --color=always -- "$1"
             }
 
             #--------not installed----------#
@@ -120,7 +125,7 @@ search_aliases() {
                 local info="Searching Pacman for packages not installed: $1..."
                 header0 "$info"
                 comm -23 \
-                    <(pacman -Slq 2>/dev/null | grep -i -- "$1" | sort -u) \
+                    <(pacman -Slq 2>/dev/null | grep -i -E --color=always -- "$1" | sort -u) \
                     <(pacman -Qq 2>/dev/null | sort -u)
             }
 
@@ -145,7 +150,7 @@ search_aliases() {
                 if [ -z "$1" ]; then
                     apt list 2>/dev/null
                 else
-                    apt list 2>/dev/null | grep -i -- "$1"
+                    apt list 2>/dev/null | grep -i -E --color=always -- "$1"
                 fi
             }
 
@@ -153,7 +158,7 @@ search_aliases() {
             apt_installed_packages_search() {
                 local info="Searching installed APT packages for $1..."
                 header0 "$info"
-                dpkg-query -W 2>/dev/null | grep -i -- "$1"
+                dpkg-query -W 2>/dev/null | grep -i -E --color=always -- "$1"
             }
 
             #--------not installed----------#
@@ -161,7 +166,7 @@ search_aliases() {
                 local info="Searching APT for packages not installed: $1..."
                 header0 "$info"
                 comm -23 \
-                    <(apt-cache pkgnames 2>/dev/null | grep -i -- "$1" | sort -u) \
+                    <(apt-cache pkgnames 2>/dev/null | grep -i -E --color=always -- "$1" | sort -u) \
                     <(dpkg-query -W -f='${binary:Package}\n' 2>/dev/null | sort -u)
             }
 
@@ -183,14 +188,14 @@ search_aliases() {
             dnf_full_repo_search() {
                 local info="Searching DNF repo for $1..."
                 header0 "$info"
-                dnf list available 2>/dev/null | grep -i -- "$1"
+                dnf list available 2>/dev/null | grep -i -E --color=always -- "$1"
             }
 
             # -------- installed ---------- #
             dnf_installed_packages_search() {
                 local info="Searching installed DNF packages for $1..."
                 header0 "$info"
-                dnf list installed 2>/dev/null | grep -i -- "$1"
+                dnf list installed 2>/dev/null | grep -i -E --color=always -- "$1"
             }
 
             #--------not installed----------#
@@ -198,7 +203,7 @@ search_aliases() {
                 local info="Searching DNF for packages not installed: $1..."
                 header0 "$info"
                 comm -23 \
-                    <(dnf list available 2>/dev/null | awk 'NR > 1 {print $1}' | sed 's/\.[^.[:space:]]*$//' | grep -i -- "$1" | sort -u) \
+                    <(dnf list available 2>/dev/null | awk 'NR > 1 {print $1}' | sed 's/\.[^.[:space:]]*$//' | grep -i -E --color=always -- "$1" | sort -u) \
                     <(dnf list installed 2>/dev/null | awk 'NR > 1 {print $1}' | sed 's/\.[^.[:space:]]*$//' | sort -u)
             }
 
@@ -220,14 +225,14 @@ search_aliases() {
             zypper_full_repo_search() {
                 local info="Searching Zypper repo for $1..."
                 header0 "$info"
-                zypper search 2>/dev/null | grep -i -- "$1"
+                zypper search 2>/dev/null | grep -i -E --color=always -- "$1"
             }
 
             # -------- installed ---------- #
             zypper_installed_packages_search() {
                 local info="Searching installed Zypper packages for $1..."
                 header0 "$info"
-                rpm -qa --qf '%{NAME} %{VERSION}-%{RELEASE}\n' 2>/dev/null | grep -i -- "$1"
+                rpm -qa --qf '%{NAME} %{VERSION}-%{RELEASE}\n' 2>/dev/null | grep -i -E --color=always -- "$1"
             }
 
             #--------not installed----------#
@@ -235,7 +240,7 @@ search_aliases() {
                 local info="Searching Zypper for packages not installed: $1..."
                 header0 "$info"
                 comm -23 \
-                    <(zypper search 2>/dev/null | awk 'NR > 4 {print $3}' | grep -i -- "$1" | sort -u) \
+                    <(zypper search 2>/dev/null | awk 'NR > 4 {print $3}' | grep -i -E --color=always -- "$1" | sort -u) \
                     <(rpm -qa --qf '%{NAME}\n' 2>/dev/null | sort -u)
             }
 
@@ -243,7 +248,7 @@ search_aliases() {
             zypper_files_db_search() {
                 local info="Searching Zypper/RPM file ownership for $1..."
                 header0 "$info"
-                rpm -qal 2>/dev/null | grep -i -- "$1"
+                rpm -qal 2>/dev/null | grep -i -E --color=always -- "$1"
             }
         }
     }
@@ -257,14 +262,14 @@ search_aliases() {
             apk_full_repo_search() {
                 local info="Searching APK repo for $1..."
                 header0 "$info"
-                apk search 2>/dev/null | grep -i -- "$1"
+                apk search 2>/dev/null | grep -i -E --color=always -- "$1"
             }
 
             # -------- installed ---------- #
             apk_installed_packages_search() {
                 local info="Searching installed APK packages for $1..."
                 header0 "$info"
-                apk info 2>/dev/null | grep -i -- "$1"
+                apk info 2>/dev/null | grep -i -E --color=always -- "$1"
             }
 
             #--------not installed----------#
@@ -272,7 +277,7 @@ search_aliases() {
                 local info="Searching APK for packages not installed: $1..."
                 header0 "$info"
                 comm -23 \
-                    <(apk search 2>/dev/null | sed 's/-[0-9].*$//' | grep -i -- "$1" | sort -u) \
+                    <(apk search 2>/dev/null | sed 's/-[0-9].*$//' | grep -i -E --color=always -- "$1" | sort -u) \
                     <(apk info 2>/dev/null | sort -u)
             }
 
@@ -280,7 +285,7 @@ search_aliases() {
             apk_files_db_search() {
                 local info="Searching APK file ownership for $1..."
                 header0 "$info"
-                apk info -L 2>/dev/null | grep -i -- "$1"
+                apk info -L 2>/dev/null | grep -i -E --color=always -- "$1"
             }
         }
     }
@@ -343,7 +348,7 @@ search_manpages() {
     header0 "$info"
 
     if command -v apropos >/dev/null 2>&1; then
-        apropos -w "$wcs" | grep -i -- "$1"
+        apropos -w "$wcs" | grep -i -E --color=always -- "$1"
     fi
 }
 
@@ -352,14 +357,14 @@ search_systemd_units() {
     header0 "$info"
 
     if command -v systemctl >/dev/null 2>&1; then
-        systemctl list-unit-files 2>/dev/null | grep -i -- "$1"
+        systemctl list-unit-files 2>/dev/null | grep -i -E --color=always -- "$1"
     fi
 }
 
 search_running_processes() {
     local info="Searching running processes for $1..."
     header0 "$info"
-    ps aux 2>/dev/null | grep -i -- "$1"
+    ps aux 2>/dev/null | grep -i -E --color=always -- "$1"
 }
 
 loaded_kernel_modules() {
@@ -367,28 +372,30 @@ loaded_kernel_modules() {
     header0 "$info"
 
     if command -v lsmod >/dev/null 2>&1; then
-        lsmod 2>/dev/null | grep -i -- "$1"
+        lsmod 2>/dev/null | grep -i -E --color=always -- "$1"
     fi
 }
 
 search_home_directory() {
-    local info="Searching the home directory $HOME for $1..."
+    local info="Searching the home directory $HOME for $1 (excluding .cache)..."
+    local exclude_dirs="$HOME/.cache"
     header0 "$info"
 
     if [ -z "$1" ]; then
-        find "$HOME"  2>/dev/null
+        find "$HOME" -type d \( $(printf "! -path %s " "$exclude_dirs") \) -print 2>/dev/null
     else
-        find "$HOME"  -iname "*$1*" 2>/dev/null
+        find "$HOME" -iname "*$1*" -not -path "$HOME/.cache/*" 2>/dev/null
     fi
 }
-
 search_system_dirs() {
-    local info="Searching system directories (/usr, /etc, /sys, /var, /opt, /boot, /lib, /bin, /sbin) for $1..."
+    local info="Searching system directories (/usr, /etc, /sys, /var, /opt, /boot, /lib, /bin, /sbin) for $1 (excluding .cache)..."
+    local dirs=(/usr /etc /sys /var /opt /boot /lib /bin /sbin)
     local d
     header0 "$info"
 
-    for d in /usr /etc /sys /var /opt /boot /lib /bin /sbin; do
-        [ -d "$d" ] && find "$d" -iname "*$1*" 2>/dev/null
+    for d in "${dirs[@]}"; do
+        [ -d "$d" ] || continue
+        find "$d" -iname "*$1*" -not -path "$HOME/.cache/*" 2>/dev/null
     done
 }
 
@@ -415,6 +422,12 @@ it will treat a second argument as the search parameter and ignore anything afte
 --system | -R <STRING>                     search system directories (/usr, /etc, /sys, ...) for <STRING> \n
 Note: each search module prints a header and raw results; no lines are filtered or removed beyond explicit search arguments and hidden stderr."
 } # currently 16 --help flag lines meaning 33 total flags long and short
+
+run_full_system_discovery() {
+    if [ "$EUID" -ne 0 ]; then
+        echo "search_system_dirs: root privileges required to search system directories."
+        return 1
+    fi
 
 search() {
     local pattern=""
@@ -480,7 +493,7 @@ search() {
             for fn in "${actions[@]}"; do
                 "$fn" "$pattern"
             done
-        } | less
+        } | less -R
     else
         for fn in "${actions[@]}"; do
             "$fn" "$pattern"
