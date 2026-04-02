@@ -45,6 +45,9 @@ fi
 # --- Installation (back to project root) ---
 cd "$SCRIPT_DIR"
 
+mkdir -p /usr/local/share/icons/
+mkdir -p /usr/local/share/applications/
+
 # 1. CLI search engine
 echo "Installing search engine..."
 install -m 755 "$SCRIPT_DIR/showMeEverything" /usr/local/bin/showMeEverything

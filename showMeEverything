@@ -428,6 +428,7 @@ run_full_system_discovery() {
         echo "search_system_dirs: root privileges required to search system directories."
         return 1
     fi
+}
 
 search() {
     local pattern=""
