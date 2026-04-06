@@ -3,7 +3,6 @@
 ## A full systemwide probe for Linux distros. A little more useful than tree /.
 
 ***
-# i am currently dealing with some personal technical issues that have in advertantly effected this project i should have everything fixed in a day or 2
 
 
 *"Once I wanted to type search \<STRING> and have the system show me everything."*
