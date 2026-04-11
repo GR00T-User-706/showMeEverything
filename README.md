@@ -11,29 +11,47 @@
 ---
 ## Repository Layout
 ```
+
 showMeEverything
 ├── assets
-│   ├── search_gui.desktop       # QML/C++ GUI desktop entry
-│   ├── showmeeverything.desktop # PY-TK desktop entry fallback
-│   └── showMeEverything.png    # icon
-├── install.sh                   # Installation script
+│   ├── com.github.gr00t-user-706.showmeeverything-gui-python.desktop # PY-TK desktop entry fallback
+│   ├── com.github.gr00t-user-706.showmeeverything-gui-qml.desktop  # QML/C++ GUI desktop entry
+│   └── showMeEverything.png   # icon
+├── install                                # Installation script
 ├── LICENSE
 ├── README.md
-├── showMeEverything             # CLI script
-└── showmeeverything_gui
-    ├── main.o
-    ├── Makefile
-    ├── README                  # GUI build instructions
-    ├── resources.qrc
-    ├── showmeeverything_gui     # compiled QML/C++ GUI executable
-    ├── showmeeverything_gui.pro # qmake project file
-    ├── showmeeverything_tk.py   # optional Python Tkinter fallback GUI
-    └── src
-        ├── main.cpp
-        ├── qml
-        │   └── main.qml
-        ├── searchbackend.cpp
-        └── searchbackend.h
+├── showMeEverything     # CLI script this file is the heart of everything without it the rest will faiil
+---
+├── showMeEverything.cflags    # this
+├── showMeEverything.config    # this
+├── showMeEverything.creator    # this
+├── showMeEverything.cxxflags     # these files are all generated when you compile the
+├── showMeEverything.files        #   QML/C++ GUI there  missing from the repo for a reson 
+---
+├── showmeeverything_gui 
+--- 
+same with these files they are generated at build time and will not be in the repo 
+│   ├── main.o
+│   ├── moc_predefs.h
+│   ├── moc_searchbackend.cpp
+│   ├── moc_searchbackend.o
+│   ├── qrc_resources.cpp
+│   ├── qrc_resources.o
+│   ├── resources.qrc
+│   ├── searchbackend.o
+---
+│   ├── Makefile
+│   ├── README                    # GUI build instructions
+│   ├── showmeeverything_gui     # compiled QML/C++ GUI executable
+│   ├── showmeeverything_gui.pro # qmake project file
+│   ├── showmeeverything_tk.py   # optional Python Tkinter fallback GUI
+│   └── src
+│       ├── main.cpp
+│       ├── qml
+│       │   └── main.qml
+│       ├── searchbackend.cpp
+│       └── searchbackend.h
+└── showMeEverything.includes
 ```
 
 ---
@@ -42,7 +60,7 @@ showMeEverything
 ### showMeEverything searches everything:
 
 >- Your $PATH (every file, every directory)
->- Loaded shell commands, aliases, functions, and builtins
+>- Loaded shell commands, aliases, functions, and built-ins
 >- manpage descriptions
 >- systemd unit files
 >- Running processes
@@ -60,72 +78,61 @@ showMeEverything
 >- Shell execution: Zsh first, with Bash compatibility
 >- Shell sourcing: Supported in Bash and Zsh, Zsh-native probes first
 ### GUIs
->- QML/C++ GUI (showmeeverything_gui) – requires CLI in $PATH, callable as `search-gui`
->- Python Tkinter fallback (showmeeverything_tk.py) – optional, requires CLI callable as `search-gui-fallback`
+>- QML/C++ GUI (showmeeverything_gui) – requires CLI in $PATH, callable as 
+>- Python Tkinter fallback (showmeeverything_tk.py) – optional, requires CLI callable as 
 >- Desktop files in `assets/` assume executables are in `/usr/local/bin/` or symlinked
+>- The Install Script should take care of everything 
 ---
-## **Important:**  
-+  All GUIs assume the CLI is installed and callable by its single-word name (search by default).
 ---
 ## Installation
->+ these all assume the package root directory are in your home folder   
->+ if you saved them somewhere else make sure you adjust accordingly 
- ### 1. **Install the CLI**  
-  
-``` 
-sudo cp ~/showMeEverything/showMeEverything /usr/local/bin/search
-sudo chmod +x /usr/local/bin/search
-``` 
-
-### 2. **Build and install the QML/C++ GUI**  
+>- make the install script executable and then us it like 
 ```
-cd ~/showMeEverything/showmeeverything_gui/
-qmake
-make
-sudo cp showmeeverything_gui /usr/local/bin/search-gui
-cd ..
+cd /path/to/showMeEverything # whereever you downloaded it to
+sudo bash install
 ```
-### 3. **Optional**: Python GUI fallback
-```
-sudo cp showmeeverything_tk.py /usr/local/bin/search-gui-fallback
-chmod +x /usr/local/bin/search-gui-fallback
-```
-
-### 4. Install desktop files
-```  
-sudo cp ~/showMeEverything/assets/*.desktop /usr/local/share/applications/
-sudo update-desktop-database
-```
-***
-**Note**: Desktop files assume executables live in /usr/local/bin or symlinked there. Adjust paths if installed elsewhere.
-***
+>- that install script will take care of everything 
+>- it first attepts to compile the qml GUI if that fails the script will continue 
+>- also if that fails the script will inform you  -thats also why there is a python basic gui
+>- then it will install the desktop entry files in /usr/local/share/applications/ creats dir if needed 
+>- installs the icon at /usr/local/share/icons
+>- and finally installs the cli and the 2 guis to /usr/local/bin/ assuming the QML build was seccessful
+>- it also sets all the permissions to 555 leave the cloned repo if u want to edit the files
+>- For QoL the cli and the guis get symlinks for shorter names comment them out if you dont want them
+>- you can re-run the install script anytime you grap an update off this repo, or anytime you modify the files 
 ## Usage
+
 
 ### CLI:
 >```
->search --all systemd        # everything related to systemd
->search --command git        # just commands named git
->search --system "conf"      # system files with "conf" in the name
->search --home "" > home.txt # entire home directory listing
->search --packages bash      # package manager aware package search
->search --help               # shows all options
+>smecli --all systemd        # everything related to systemd
+>smecli --command git        # just commands named git
+>smecli --system "conf"      # system files with "conf" in the name
+>smecli --home "" > home.txt # entire home directory listing
+>smecli --packages bash      # package manager aware package search
+>smecli --help               # shows all options
 >```
 
 ### GUI:
 >```
->Run search-gui (QML/C++ GUI) or search-gui-fallback (Python Tkinter)
+>Run smegui (QML/C++ GUI) or smegpy (Python Tkinter)
 >Enter any valid CLI argument in the input box
 >Press Search or hit Enter
->Press Help to see available flags
+>Press Help to see available flags 
 >```
 ***
-## **Both GUIs require the CLI to be in $PATH and callable by the name used during**
+### **Both GUIs require the CLI to be in $PATH and callable by the name used during**
+>- as long as you use the install script and your system is same this should be true
+>-  if not then imma need you to go, do something else, touch grass. smoke grass
+>-  but if your $PATH doesn't include /usr/local/bin maybe stop, your gonna break something 
 ***
+
 ## Philosophy
 
->- Zero dependencies beyond shell + coreutils
+>- Zero dependencies beyond shell + coreutils for the cli
 >- Raw output, full system interrogation
->- --all dumps everything
+>- --ALL dumps everything
 >- One function per probe, easy to reason about
 >- Pull requests and constructive criticism welcome
 >- Goal: spread knowledge and system awareness  
+>- this is a very powerful tool, if you are not a system administrator 
+>- you should probably just stop before u get yourself in trouble 

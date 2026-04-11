@@ -8,13 +8,15 @@ ApplicationWindow {
     id: mainWindow
 
     // Colors
-    property color backgroundColor: "#2a2e32"
+    property color backgroundColor: "#1b1e21"
     property color foregroundColor: "#eff0f1"
     property color accentColor: "#3daee9"
     property color buttonColor: "#31363b"
-    property color inputColor: "#eff0f1"
+    property color inputColor: "#7a7a7a"
     // Friendly flag mapping
     property var flagMap: ({
+        "excludeDotFiles": "--excludeDotFiles",
+        "ALL": "--ALL",
         "all": "--all",
         "aliases": "--aliases",
         "builtins": "--builtins",
@@ -30,7 +32,7 @@ ApplicationWindow {
         "packages": "--packages",
         "path": "--path",
         "systemd": "--systemd",
-        "system": "--system"
+        "system": "--system",
     })
 
     // Helper functions
@@ -89,7 +91,7 @@ ApplicationWindow {
             outputModel.append({
                 "modelData": line
             });
-            outputListView.positionViewAtEnd(); // auto-sctoll
+            outputListView.positionViewAtEnd(); // auto-scroll
         }
 
         function onOutputCleared() {

@@ -12,7 +12,11 @@ if not SEARCH_SCRIPT:
 
 # Allowed arguments (example: only some flags)
 ALLOWED_ARGS = [
+    "--nodot"
+    "--excludeDotFiles",
+    "--less",
     "--all",
+    "--ALL",
     "-A",
     "--aliases",
     "-a",

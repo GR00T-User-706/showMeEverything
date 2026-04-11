@@ -8,7 +8,8 @@ SearchBackend::SearchBackend(QObject* parent)
     , m_process(nullptr)
     , m_running(false)
 {
-    m_allowedArgs = QStringList() << "--all" << "-A"
+    m_allowedArgs = QStringList()  << "--ALL" << "-A"
+    								 << "--all"
                                   << "--aliases" << "-a"
                                   << "--builtins" << "-B"
                                   << "--command" << "-c"
@@ -24,7 +25,8 @@ SearchBackend::SearchBackend(QObject* parent)
                                   << "--packages" << "-p" << "--pkg"
                                   << "--path" << "-P"
                                   << "--systemd" << "-s"
-                                  << "--system" << "-R";
+                                  << "--system" << "-R"
+                                  << "--excludeDotFiles" << "--nodot"
 }
 
 void SearchBackend::runSearch(const QString& args)

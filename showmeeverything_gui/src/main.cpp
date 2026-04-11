@@ -7,7 +7,7 @@ int main(int argc, char* argv[])
 {
     QApplication app(argc, argv);
 
-    app.setOrganizationName("YourName");
+    app.setOrganizationName("GR00T-User-706");
     app.setApplicationName("ShowMeEverything");
     app.setApplicationDisplayName("Show Me Everything Search Tool");
 

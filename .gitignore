@@ -1,0 +1,24 @@
+.*~
+.*
+# Build artifacts (Qt)
+*.o
+*.user
+*.moc
+moc_*.cpp
+qrc_*.cpp
+Makefile
+showmeeverything_gui
+
+# Python
+__pycache__/
+*.pyc
+
+# Misc
+.DS_Store
+*.txt
+showMeEverything.cflags
+showMeEverything.config
+showMeEverything.creator
+showMeEverything.cxxflags
+showMeEverything.files
+showMeEverything.includes

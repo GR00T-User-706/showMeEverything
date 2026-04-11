@@ -5,6 +5,7 @@
         header0() {
             echo "#=========================================================#"
             echo "$1"
+            echo "$2"
             echo "#=========================================================#"
         }
     }
@@ -379,12 +380,22 @@ loaded_kernel_modules() {
 search_home_directory() {
     local info="Searching the home directory $HOME for $1 (excluding .cache)..."
     local exclude_dirs="$HOME/.cache"
+    local dotfiles="$HOME/.*"
+    local exclude_dotfiles=""
     header0 "$info"
 
-    if [ -z "$1" ]; then
-        find "$HOME" -type d \( $(printf "! -path %s " "$exclude_dirs") \) -print 2>/dev/null
+    if [ "$exclude_dotfiles" == true ]; then
+          if [ -z "$1" ]; then
+            find "$HOME" -type d \( $(printf "! -path %s " "$dotfiles" "$exclude_dirs") \) -print 2>/dev/null
+        else
+            find "$HOME" -iname "*$1*" -not -path "$HOME/.*" 2>/dev/null
+        fi
     else
-        find "$HOME" -iname "*$1*" -not -path "$HOME/.cache/*" 2>/dev/null
+        if [ -z "$1" ]; then
+            find "$HOME" -type d \( $(printf "! -path %s " "$exclude_dirs") \) -print 2>/dev/null
+        else
+            find "$HOME" -iname "*$1*" -not -path "$HOME/.cache/*" 2>/dev/null
+        fi
     fi
 }
 search_system_dirs() {
@@ -400,11 +411,13 @@ search_system_dirs() {
 }
 
 help() {
-    echo -e "
-
-parameters are optional for every argument both long and short, however search requires at exactly 1 argument flag
-it will treat a second argument as the search parameter and ignore anything after the second positional parameter
---all | -A <STRING>                        search commands, manpages, packages, and filesystem for <string> \n
+    echo -e "parameters are optional for every argument both long and short, however search requires at exactly 1 argument flag \n
+it will treat a second argument as the search parameter and ignore anything after the second positional parameter \n
+some arguments can be stacked for a more controlled output. [--ALL | --all] can only be used with --less or by its self\n
+--excludeDotFiles | --nodot               this can be used to exclude ALL dot files from any \$HOME searches \n
+--less                                            use with other arguments to pipe the results through less \n
+--ALL | -A <STRING>                        search commands, manpages, packages, and filesystem for <string> literally every possible place \n
+--all   <STRING>                             similar to --ALL but restricted to userspace mostly \n
 --aliases | -a <STRING>                    search shell aliases for <STRING> \n
 --builtins | -B <STRING>                   search shell builtins for <STRING> \n
 --command | -c <STRING>                    search for <STRING> in loaded shell command list \n
@@ -421,7 +434,7 @@ it will treat a second argument as the search parameter and ignore anything afte
 --systemd | -s <STRING>                    search systemd unit files for <STRING> \n
 --system | -R <STRING>                     search system directories (/usr, /etc, /sys, ...) for <STRING> \n
 Note: each search module prints a header and raw results; no lines are filtered or removed beyond explicit search arguments and hidden stderr."
-} # currently 16 --help flag lines meaning 33 total flags long and short
+}
 
 run_full_system_discovery() {
     if [ "$EUID" -ne 0 ]; then
@@ -434,11 +447,13 @@ search() {
     local pattern=""
     local -a actions=()
     local use_less=false
+    local exclude_dotfiles=false
 
     while [ $# -gt 0 ]; do
         case "$1" in
+            --excludeDotFiles | --nodot) exclude_dotfiles=true ;;
             --less) use_less=true ;;
-            --all | -A)
+            --ALL | -A)
                 actions+=(
                     search_path
                     search_loaded_commands
@@ -455,6 +470,22 @@ search() {
                     search_packages_not_installed
                     search_home_directory
                     search_system_dirs
+                )
+                ;;
+          --all )
+                actions+=(
+                    search_path
+                    search_loaded_commands
+                    search_builtins
+                    search_aliases
+                    search_shell_functions
+                    search_manpages
+                    search_running_processes
+                    search_package_repo
+                    search_installed_packages
+                    search_package_files_db
+                    search_packages_not_installed
+                    search_home_directory
                 )
                 ;;
             --aliases | -a) actions+=(search_aliases) ;;
@@ -487,14 +518,14 @@ search() {
     }
 
     [ -z "$pattern" ] && [ "${actions[0]}" = "search_path" ] && pattern="**"
-
+    if [ "$exclude_dotfiles" == "true" ]
     # execute all actions and pipe combined output to less if requested
     if [ "$use_less" = true ]; then
         {
             for fn in "${actions[@]}"; do
                 "$fn" "$pattern"
             done
-        } | less -R
+        } | less -R]
     else
         for fn in "${actions[@]}"; do
             "$fn" "$pattern"

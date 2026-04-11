@@ -50,16 +50,22 @@ mkdir -p /usr/local/share/applications/
 
 # 1. CLI search engine
 echo "Installing search engine..."
-install -m 755 "$SCRIPT_DIR/showMeEverything" /usr/local/bin/showMeEverything
+install -m 555 "$SCRIPT_DIR/showMeEverything" /usr/local/bin/showMeEverything
+echo "Creating a symlink for showMeEverything as smecli"
+ln -sf /usr/local/bin/showMeEverything /usr/local/bin/smecli
 
 # 2. Python/Tk GUI (fallback – works anywhere)
 echo "Installing Python GUI..."
-install -m 755 "$SCRIPT_DIR/showmeeverything_gui/showmeeverything_tk.py" /usr/local/bin/showmeeverything_tk.py
+install -m 555 "$SCRIPT_DIR/showmeeverything_gui/showmeeverything_tk.py" /usr/local/bin/showmeeverything_tk
+echo "Creating a symlink for showmeeverything_tk as smegpy"
+ln -sf /usr/local/bin/showmeeverything_tk /usr/local/bin/smegpy
 
 # 3. Qt/QML GUI (only if build succeeded)
 if [ $QT_BUILD_OK -eq 1 ] && [ -f "$SCRIPT_DIR/showmeeverything_gui/showmeeverything_gui" ]; then
     echo "Installing Qt GUI..."
-    install -m 755 "$SCRIPT_DIR/showmeeverything_gui/showmeeverything_gui" /usr/local/bin/showmeeverything_gui
+    install -m 555 "$SCRIPT_DIR/showmeeverything_gui/showmeeverything_gui" /usr/local/bin/showmeeverything_gui
+    echo "Creating a symlink for showmeeverything_gui as smegui"
+    ln -sf /usr/local/bin/showmeeverything_gui /usr/local/bin/smegui
 else
     echo -e "${YELLOW}Qt GUI not built – skipping installation.${NC}"
 fi
