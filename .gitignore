@@ -1,12 +1,14 @@
+# kate backup files
 .*~
 .*
+.%*%~
 # Build artifacts (Qt)
 *.o
 *.user
 *.moc
 moc_*.cpp
 qrc_*.cpp
-Makefile
+
 showmeeverything_gui
 
 # Python
@@ -16,9 +18,8 @@ __pycache__/
 # Misc
 .DS_Store
 *.txt
-showMeEverything.cflags
-showMeEverything.config
-showMeEverything.creator
-showMeEverything.cxxflags
-showMeEverything.files
-showMeEverything.includes
+*.cflags
+*.config
+*.creator
+*.cxxflags
+*.includes
