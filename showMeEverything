@@ -518,7 +518,7 @@ search() {
     }
 
     [ -z "$pattern" ] && [ "${actions[0]}" = "search_path" ] && pattern="**"
-    if [ "$exclude_dotfiles" == "true" ]
+
     # execute all actions and pipe combined output to less if requested
     if [ "$use_less" = true ]; then
         {
@@ -531,9 +531,9 @@ search() {
             "$fn" "$pattern"
         done
     fi
-
     footer
 }
+
 # this section should be safe to leave  active however feel free to un/comment as you see fit
 # this section is only if you are sourcing the file to use it.
 # the author keeps a symlink in /usr/local/sbin/search --> ~/showMeEverything/showMeEverything

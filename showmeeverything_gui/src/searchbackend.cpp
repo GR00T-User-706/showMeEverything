@@ -26,7 +26,7 @@ SearchBackend::SearchBackend(QObject* parent)
                                   << "--path" << "-P"
                                   << "--systemd" << "-s"
                                   << "--system" << "-R"
-                                  << "--excludeDotFiles" << "--nodot"
+                                  << "--excludeDotFiles" << "--nodot";
 }
 
 void SearchBackend::runSearch(const QString& args)
