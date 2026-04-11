@@ -11,7 +11,7 @@ qrc_*.cpp
 *.
 *.cache
 sho.wmeeverything_gui
-
+*.idx
 # Python
 __pycache__/
 *.pyc
