@@ -8,8 +8,9 @@
 *.moc
 moc_*.cpp
 qrc_*.cpp
-
-showmeeverything_gui
+*.
+*.cache
+sho.wmeeverything_gui
 
 # Python
 __pycache__/
