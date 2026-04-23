@@ -525,7 +525,7 @@ search() {
             for fn in "${actions[@]}"; do
                 "$fn" "$pattern"
             done
-        } | less -R]
+        } | less -R
     else
         for fn in "${actions[@]}"; do
             "$fn" "$pattern"
