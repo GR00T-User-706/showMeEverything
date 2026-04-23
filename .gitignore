@@ -1,6 +1,6 @@
 # kate backup files
 .*~
-.*
+*~
 .%*%~
 # Build artifacts (Qt)
 *.o
@@ -27,5 +27,5 @@ __pycache__/
 moc_*
 qrc_*
 Makefile
-showmeeverything_gui
+/showmeeverything_gui
 
