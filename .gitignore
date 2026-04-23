@@ -10,7 +10,6 @@ moc_*.cpp
 qrc_*.cpp
 *.
 *.cache
-sho.wmeeverything_gui
 *.idx
 # Python
 __pycache__/
@@ -24,3 +23,9 @@ __pycache__/
 *.creator
 *.cxxflags
 *.includes
+*.o
+moc_*
+qrc_*
+Makefile
+showmeeverything_gui
+

@@ -11,47 +11,30 @@
 ---
 ## Repository Layout
 ```
-
 showMeEverything
 ├── assets
-│   ├── com.github.gr00t-user-706.showmeeverything-gui-python.desktop # PY-TK desktop entry fallback
-│   ├── com.github.gr00t-user-706.showmeeverything-gui-qml.desktop  # QML/C++ GUI desktop entry
-│   └── showMeEverything.png   # icon
-├── install                                # Installation script
+│   ├── com.github.gr00t-user-706.showmeeverything-gui-python.desktop
+│   ├── com.github.gr00t-user-706.showmeeverything-gui-qml.desktop
+│   └── showMeEverything.png
+│
+├── install
 ├── LICENSE
 ├── README.md
-├── showMeEverything     # CLI script this file is the heart of everything without it the rest will faiil
----
-├── showMeEverything.cflags    # this
-├── showMeEverything.config    # this
-├── showMeEverything.creator    # this
-├── showMeEverything.cxxflags     # these files are all generated when you compile the
-├── showMeEverything.files        #   QML/C++ GUI there  missing from the repo for a reson 
----
-├── showmeeverything_gui 
---- 
-same with these files they are generated at build time and will not be in the repo 
-│   ├── main.o
-│   ├── moc_predefs.h
-│   ├── moc_searchbackend.cpp
-│   ├── moc_searchbackend.o
-│   ├── qrc_resources.cpp
-│   ├── qrc_resources.o
-│   ├── resources.qrc
-│   ├── searchbackend.o
----
-│   ├── Makefile
-│   ├── README                    # GUI build instructions
-│   ├── showmeeverything_gui     # compiled QML/C++ GUI executable
-│   ├── showmeeverything_gui.pro # qmake project file
-│   ├── showmeeverything_tk.py   # optional Python Tkinter fallback GUI
-│   └── src
-│       ├── main.cpp
-│       ├── qml
-│       │   └── main.qml
-│       ├── searchbackend.cpp
-│       └── searchbackend.h
-└── showMeEverything.includes
+├── showMeEverything              # CLI core script (heart of the project)
+│
+├── showmeeverything_gui         # QML/C++ + optional Python GUI
+│   ├── README                    # GUI build instructions
+│   ├── showmeeverything_gui.pro # qmake project file
+│   ├── showmeeverything_tk.py   # optional Python Tkinter GUI fallback
+│   │
+│   ├── src
+│   │   ├── main.cpp
+│   │   ├── qml
+│   │   │   └── main.qml
+│   │   ├── searchbackend.cpp
+│   │   └── searchbackend.h
+│   │
+│   └── resources.qrc
 ```
 
 ---
