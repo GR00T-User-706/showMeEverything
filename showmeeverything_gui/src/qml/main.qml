@@ -16,8 +16,11 @@ ApplicationWindow {
     // Friendly flag mapping
     property var flagMap: ({
         "excludeDotFiles": "--excludeDotFiles",
+        "nodot": "--nodot",
+
         "ALL": "--ALL",
         "all": "--all",
+
         "aliases": "--aliases",
         "builtins": "--builtins",
         "command": "--command",
@@ -33,6 +36,16 @@ ApplicationWindow {
         "path": "--path",
         "systemd": "--systemd",
         "system": "--system",
+
+        // refined system dirs (the ones you just added)
+        "usr": "--usr",
+        "etc": "--etc",
+        "var": "--var",
+        "opt": "--opt",
+        "boot": "--boot",
+        "lib": "--lib",
+        "bin": "--bin",
+        "sbin": "--sbin"
     })
 
     // Helper functions

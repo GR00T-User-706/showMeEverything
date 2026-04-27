@@ -51,7 +51,7 @@ showMeEverything
 >- System directories (/usr, /etc, /sys, /var, ...)
 >- Your home directory
 >- Package databases on supported Linux distributions
-
+>- Flags can overlap and will stack behavior unless explicitly overridden by mutually exclusive modes.
 
 ---
 ## Current Support
@@ -64,7 +64,15 @@ showMeEverything
 >- QML/C++ GUI (showmeeverything_gui) – requires CLI in $PATH, callable as 
 >- Python Tkinter fallback (showmeeverything_tk.py) – optional, requires CLI callable as 
 >- Desktop files in `assets/` assume executables are in `/usr/local/bin/` or symlinked
->- The Install Script should take care of everything 
+>- The Install Script should take care of everything
+## GUI Support Notes
+>- QML GUI requires a modern system with full Qt6 QML runtime support.
+>- On older systems (especially pre-2015 hardware), QML may fail due to missing modules or performance constraints.
+>- In those cases, use:
+```
+    smegpy #(Python Tkinter GUI)
+```
+>- The CLI (smecli) is the primary interface and works on all supported systems. 
 ---
 ---
 ## Installation
@@ -83,7 +91,8 @@ sudo bash install
 >- For QoL the cli and the guis get symlinks for shorter names comment them out if you dont want them
 >- you can re-run the install script anytime you grap an update off this repo, or anytime you modify the files 
 ## Usage
-
+>-- i repeat
+>-- Flags can overlap and will stack behavior unless explicitly overridden by mutually exclusive modes.
 
 ### CLI:
 >```

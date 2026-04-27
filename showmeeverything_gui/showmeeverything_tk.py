@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SME_SIGNATURE=gr00t-user-706
 import tkinter as tk
 from tkinter import scrolledtext
 import subprocess
@@ -12,45 +13,82 @@ if not SEARCH_SCRIPT:
 
 # Allowed arguments (example: only some flags)
 ALLOWED_ARGS = [
-    "--nodot"
+    "--nodot",
     "--excludeDotFiles",
     "--less",
-    "--all",
+
     "--ALL",
     "-A",
+
+    "--all",
+
     "--aliases",
     "-a",
+
     "--builtins",
     "-B",
+
     "--command",
     "-c",
+
     "--files",
     "-F",
+
     "--functions",
     "-f",
+
     "--help",
     "-h",
+
     "--home",
     "-H",
+
     "--installed",
     "-i",
+
     "--manpages",
     "--man",
+
     "--modules",
     "-m",
-    "--not-installed",
-    "-n",
+
     "--process",
     "-x",
+
     "--packages",
     "-p",
     "--pkg",
+
     "--path",
     "-P",
+
     "--systemd",
     "-s",
+
     "--system",
     "-R",
+
+    # NEW SYSTEM SUB-FLAGS (refined search layer)
+    "--usr",
+    "-U",
+
+    "--etc",
+    "-E",
+
+    "--var",
+    "-V",
+
+    "--opt",
+    "-O",
+
+    "--boot",
+    "-b",
+
+    "--lib",
+    "-L",
+
+    "--bin",
+    "--sbin"
 ]
 ARG_MAP = {arg.lstrip("-").lower(): arg for arg in ALLOWED_ARGS}
 

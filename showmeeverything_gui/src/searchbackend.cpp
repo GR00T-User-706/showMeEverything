@@ -8,27 +8,46 @@ SearchBackend::SearchBackend(QObject* parent)
     , m_process(nullptr)
     , m_running(false)
 {
-    m_allowedArgs = QStringList()  << "--ALL" << "-A"
-    								 << "--all"
-                                  << "--aliases" << "-a"
-                                  << "--builtins" << "-B"
-                                  << "--command" << "-c"
-                                  << "--files" << "-F"
-                                  << "--functions" << "-f"
-                                  << "--help" << "-h"
-                                  << "--home" << "-H"
-                                  << "--installed" << "-i"
-                                  << "--manpages" << "--man"
-                                  << "--modules" << "-m"
-                                  << "--not-installed" << "-n"
-                                  << "--process" << "-x"
-                                  << "--packages" << "-p" << "--pkg"
-                                  << "--path" << "-P"
-                                  << "--systemd" << "-s"
-                                  << "--system" << "-R"
-                                  << "--excludeDotFiles" << "--nodot";
-}
+    m_allowedArgs = QStringList()
+    << "--ALL" << "-A"
+    << "--all"
 
+    << "--aliases" << "-a"
+    << "--builtins" << "-B"
+    << "--command" << "-c"
+    << "--files" << "-F"
+    << "--functions" << "-f"
+
+    << "--help" << "-h"
+
+    << "--home" << "-H"
+    << "--installed" << "-i"
+
+    << "--manpages" << "--man"
+    << "--modules" << "-m"
+
+    << "--process" << "-x"
+
+    << "--packages" << "-p" << "--pkg"
+
+    << "--path" << "-P"
+
+    << "--systemd" << "-s"
+
+    << "--system" << "-R"
+
+    << "--excludeDotFiles" << "--nodot"
+
+    // NEW refined system search flags
+    << "--usr" << "-U"
+    << "--etc" << "-E"
+    << "--var" << "-V"
+    << "--opt" << "-O"
+    << "--boot" << "-b"
+    << "--lib" << "-L"
+    << "--bin"
+    << "--sbin";
+}
 void SearchBackend::runSearch(const QString& args)
 {
     clearOutput();

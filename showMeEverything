@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# SME_SIGNATURE=gr00t-user-706
 #header and footer functions for global use
 {
     {
@@ -26,7 +27,10 @@ else
 fi
 
 [ "$current_shell" = "bash" ] && shopt -s expand_aliases 2>/dev/null
-
+# --- Common exclude rules ---
+EXCLUDES=(
+    -not -path "*/.cache/*"
+)
 #==========================================#
 #==== SHELL SPECIFIC  SEARCH FUNCTIONS ====#
 #==========================================#
@@ -38,7 +42,7 @@ search_path() {
     IFS=':'
     for dir in $PATH; do
         [ -d "$dir" ] || continue
-        find "$dir" -not -path "$HOME/.cache/*" -iname "*$1*" 2>/dev/null
+        find "$dir" "${EXCLUDES[@]}" -iname "*$1*" 2>/dev/null
     done
     unset IFS
 }
@@ -388,13 +392,13 @@ search_home_directory() {
           if [ -z "$1" ]; then
             find "$HOME" -type d \( $(printf "! -path %s " "$dotfiles" "$exclude_dirs") \) -print 2>/dev/null
         else
-            find "$HOME" -iname "*$1*" -not -path "$HOME/.*" 2>/dev/null
+            find "$HOME" -iname "*$1*" "${EXCLUDES[@]}" 2>/dev/null
         fi
     else
         if [ -z "$1" ]; then
             find "$HOME" -type d \( $(printf "! -path %s " "$exclude_dirs") \) -print 2>/dev/null
         else
-            find "$HOME" -iname "*$1*" -not -path "$HOME/.cache/*" 2>/dev/null
+            find "$HOME" -iname "*$1*" "${EXCLUDES[@]}" 2>/dev/null
         fi
     fi
 }
@@ -410,30 +414,100 @@ search_system_dirs() {
     done
 }
 
+
+search_usr() {
+    [ -d /usr ] || return
+
+    find /usr -iname "*$1*" "${EXCLUDES[@]}" 2>/dev/null
+}
+
+search_etc() {
+    [ -d /etc ] || return
+    find /etc -iname "*$1*" "${EXCLUDES[@]}" 2>/dev/null
+}
+
+search_sys() {
+    [ -d /sys ] || return
+    find /sys -iname "*$1*" "${EXCLUDES[@]}" 2>/dev/null
+}
+
+search_var() {
+    [ -d /var ] || return
+    find /var -iname "*$1*" "${EXCLUDES[@]}" 2>/dev/null
+}
+
+search_opt() {
+    [ -d /opt ] || return
+    find /opt -iname "*$1*" "${EXCLUDES[@]}" 2>/dev/null
+}
+
+search_boot() {
+    [ -d /boot ] || return
+    find /boot -iname "*$1*" "${EXCLUDES[@]}" 2>/dev/null
+}
+
+search_lib() {
+    [ -d /lib ] || return
+    find /lib -iname "*$1*" "${EXCLUDES[@]}" 2>/dev/null
+}
+
+search_bin() {
+    [ -d /bin ] || return
+    find /bin -iname "*$1*" "${EXCLUDES[@]}" 2>/dev/null
+}
+
+search_sbin() {
+    [ -d /sbin ] || return
+    find /sbin -iname "*$1*" "${EXCLUDES[@]}" 2>/dev/null
+}
 help() {
-    echo -e "parameters are optional for every argument both long and short, however search requires at exactly 1 argument flag \n
-it will treat a second argument as the search parameter and ignore anything after the second positional parameter \n
-some arguments can be stacked for a more controlled output. [--ALL | --all] can only be used with --less or by its self\n
---excludeDotFiles | --nodot               this can be used to exclude ALL dot files from any \$HOME searches \n
---less                                            use with other arguments to pipe the results through less \n
---ALL | -A <STRING>                        search commands, manpages, packages, and filesystem for <string> literally every possible place \n
---all   <STRING>                             similar to --ALL but restricted to userspace mostly \n
---aliases | -a <STRING>                    search shell aliases for <STRING> \n
---builtins | -B <STRING>                   search shell builtins for <STRING> \n
---command | -c <STRING>                    search for <STRING> in loaded shell command list \n
---files | -F <STRING>                      search the detected package file database for <STRING> \n
---functions | -f <STRING>                  search loaded shell functions for <STRING> \n
---help | -h                                print this help message \n
---home | -H <STRING>                       search your \$HOME directory for <STRING> \n
---installed | -i <STRING>                  search installed packages for <STRING> \n
---modules | -m <STRING>                    search loaded kernel modules for <STRING> \n
---manpages | --man <STRING>                search manpage descriptions for <STRING> \n
---packages | -p | --pkg <STRING>           search the detected package manager database for <STRING> \n
---path | -P <STRING>                       search the shell's \$PATH for <STRING> \n
---process | -x <STRING>                    search running processes for <STRING> \n
---systemd | -s <STRING>                    search systemd unit files for <STRING> \n
---system | -R <STRING>                     search system directories (/usr, /etc, /sys, ...) for <STRING> \n
-Note: each search module prints a header and raw results; no lines are filtered or removed beyond explicit search arguments and hidden stderr."
+    echo -e "Author:Zenrich Shadowstep (aka GR00T-User-706)\n
+Contact:crypto_code_weaver_syndicate@proton.me\n
+Version:3.0\n
+[FOR CLI ONLY] Syntax:\n
+	smecli [--less][--flag|-f] <STRING>\n
+	smecli [-a][-B][-c][-f][-i][-m][-H] <STRING>\n
+	(*)smecli [--ALL]   \n
+	(*)smecli [--all]   \n
+\n
+(*) these flags if ran with an empty search param will do a full sysytem dump, performance will vary\n	
+search parameters are optional for every Flag both long and short, at least 1 flag \n
+is required to function, some arguments can be stacked for more controlled output. \n
+Flags can overlap and will stack behavior unless explicitly overridden by mutually exclusive modes.\n
+the flags [--ALL|-A][--all] [--system|-R] will produce a seriously large ammount of data if\n
+ran without a search parameter for older systems i recomend redirection or --less 
+--excludeDotFiles | --nodot		exclude ALL dot files from any \$HOME-based searches (legacy home search module) \n
+--less                                  pipe output through less for pagination \n
+
+--ALL | -A <STRING>                     search commands, manpages, packages, PATH, system, and filesystem for <STRING>\n
+						(full aggressive global scan mode) \n
+--all <STRING>                          similar to --ALL but no --system (no /sys, reduced system scan footprint) \n
+--aliases | -a <STRING>                 search shell aliases for <STRING> \n
+--bin | --bin <STRING>                  search /bin executables only \n
+--boot | -B <STRING>                    search /boot system boot files only \n
+--builtins | -b <STRING>                search shell builtins for <STRING> \n
+--command | -c <STRING>                 search for <STRING> in loaded shell command list \n
+--etc | -E <STRING>                     search /etc configuration directory only \n
+--files | -F <STRING>                   search package-managed file database for <STRING> \n
+--functions | -f <STRING>               search loaded shell functions for <STRING> \n
+--help | -h                             print this help message \n
+--home | -H <STRING>                    search your \$HOME directory for <STRING> \n
+--installed | -i <STRING>               search installed packages for <STRING> \n
+--lib | -L <STRING>                     search /lib system libraries only \n
+--modules | -m <STRING>                 search loaded kernel modules for <STRING> \n
+--manpages | --man <STRING>             search manpage descriptions for <STRING> \n
+--opt | -O <STRING>                     search /opt third-party software directory only \n
+--packages | -p | --pkg <STRING>        search detected package manager database for <STRING> \n
+--path | -P <STRING>                    search shell \$PATH for <STRING> \n
+--process | -x <STRING>                 search running processes for <STRING> \n
+--sbin | --sbin <STRING>                search /sbin system executables only \n
+--systemd | -s <STRING>                 search systemd unit files for <STRING> \n
+--system | -R <STRING>                  search system directories (/usr, /etc, /sys, /var, /opt, /boot, /lib, /bin, /sbin) for <STRING> \n
+--usr | -U <STRING>                     search /usr directory only (refined system scan module) \n
+--var | -V <STRING>                     search /var directory only (logs, caches, state data) \n
+Note:
+many search domain [--ALL|-all] will print a header to help to make large outputs easier to handle when redirected to a file or piped to less. \n
+if you wish to pipe the output into less i recomend using the built in --less flag\n"
 }
 
 run_full_system_discovery() {
@@ -442,7 +516,6 @@ run_full_system_discovery() {
         return 1
     fi
 }
-
 search() {
     local pattern=""
     local -a actions=()
@@ -453,6 +526,7 @@ search() {
         case "$1" in
             --excludeDotFiles | --nodot) exclude_dotfiles=true ;;
             --less) use_less=true ;;
+
             --ALL | -A)
                 actions+=(
                     search_path
@@ -472,7 +546,8 @@ search() {
                     search_system_dirs
                 )
                 ;;
-          --all )
+
+            --all)
                 actions+=(
                     search_path
                     search_loaded_commands
@@ -488,8 +563,9 @@ search() {
                     search_home_directory
                 )
                 ;;
+
             --aliases | -a) actions+=(search_aliases) ;;
-            --builtins | -B) actions+=(search_builtins) ;;
+            --builtins | -b) actions+=(search_builtins) ;;
             --command | -c) actions+=(search_loaded_commands) ;;
             --files | -F) actions+=(search_package_files_db) ;;
             --functions | -f) actions+=(search_shell_functions) ;;
@@ -503,6 +579,17 @@ search() {
             --path | -P) actions+=(search_path) ;;
             --systemd | -s) actions+=(search_systemd_units) ;;
             --system | -R) actions+=(search_system_dirs) ;;
+
+            # NEW refined system directory flags
+            --usr|U) actions+=(search_usr) ;;
+            --etc|-E) actions+=(search_etc) ;;
+            --var|-V) actions+=(search_var) ;;
+            --opt|-O) actions+=(search_opt) ;;
+            --boot|-B) actions+=(search_boot) ;;
+            --lib|-L) actions+=(search_lib) ;;
+            --bin|--bin) actions+=(search_bin) ;;
+            --sbin|--sbin) actions+=(search_sbin) ;;
+
             --help | -h) help; return ;;
             *)
                 pattern="$1"
@@ -512,14 +599,13 @@ search() {
     done
 
     [ ${#actions[@]} -eq 0 ] && {
-        echo "search: No criteria given"
+        echo "search: No search flags given"
         echo "Search: for more information try [search --help]"
         return 1
     }
 
     [ -z "$pattern" ] && [ "${actions[0]}" = "search_path" ] && pattern="**"
 
-    # execute all actions and pipe combined output to less if requested
     if [ "$use_less" = true ]; then
         {
             for fn in "${actions[@]}"; do
@@ -531,24 +617,9 @@ search() {
             "$fn" "$pattern"
         done
     fi
+
     footer
 }
 
-# this section should be safe to leave  active however feel free to un/comment as you see fit
-# this section is only if you are sourcing the file to use it.
-# the author keeps a symlink in /usr/local/sbin/search --> ~/showMeEverything/showMeEverything
-#is_sourced() {
-#    if [ -n "${ZSH_VERSION:-}" ]; then
-#        case "${ZSH_EVAL_CONTEXT:-}" in
-#        *:file) return 0 ;;
-#        esac
-#    elif [ -n "${BASH_VERSION:-}" ]; then
-#        [ "${BASH_SOURCE[0]}" != "$0" ] && return 0
-#   fi
-#    return 1
-#}
-#if ! is_sourced; then
-#    search "$@"
-#fi
 
 search "$@"

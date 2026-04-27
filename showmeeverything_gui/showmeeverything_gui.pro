@@ -1,5 +1,7 @@
 QT += quick widgets core
 
+TARGET = showmeeverything_qml
+
 SOURCES = src/main.cpp \
           src/searchbackend.cpp
 
