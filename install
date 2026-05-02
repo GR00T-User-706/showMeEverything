@@ -286,6 +286,10 @@ install_desktop_entries() {
     fi
 }
 
+set_ownership() {
+    chown -R "$SUDO_USER":"$SUDO_USER" "$SCRIPT_DIR"
+}
+
 # --- Show summary based on install mode ---
 show_summary() {
     echo ""
@@ -378,7 +382,7 @@ main() {
             install_desktop_entries
             ;;
     esac
-
+    set_ownership
     # Summary phase (always runs)
     show_summary
 }

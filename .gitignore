@@ -29,4 +29,4 @@ qrc_*
 Makefile
 showmeeverything_qml
 package-lock.json
-
+.qtc_clangd/
