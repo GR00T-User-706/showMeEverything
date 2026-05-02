@@ -28,4 +28,5 @@ moc_*
 qrc_*
 Makefile
 showmeeverything_qml
+package-lock.json
 
