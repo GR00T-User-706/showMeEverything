@@ -12,19 +12,14 @@
 ## Repository Layout
 ```
 showMeEverything
-├── assets
-│   ├── com.github.gr00t-user-706.showmeeverything-gui-python.desktop
-│   ├── com.github.gr00t-user-706.showmeeverything-gui-qml.desktop
-│   └── showMeEverything.png
-│
 ├── install
 ├── LICENSE
 ├── README.md
-├── showMeEverything              # CLI core script (heart of the project)
-│
+├── showMeEverything            # CLI # CORE FILE, dependancy for the guis 
+│           # EVERYTHING BELOW IS OPTIONAL 
 ├── showmeeverything_gui         # QML/C++ + optional Python GUI
 │   ├── README                    # GUI build instructions
-│   ├── showmeeverything_gui.pro # qmake project file
+│   ├── showmeeverything_gui.pro # qmake project file 
 │   ├── showmeeverything_tk.py   # optional Python Tkinter GUI fallback
 │   │
 │   ├── src
@@ -34,6 +29,10 @@ showMeEverything
 │   │   ├── searchbackend.cpp
 │   │   └── searchbackend.h
 │   │
+│   ├── assets  # only needed for the GUI applications 
+│   │   ├── com.github.gr00t-user-706.showmeeverything-gui-python.desktop # optional
+│   │   ├── com.github.gr00t-user-706.showmeeverything-gui-qml.desktop  #optional
+│   │   └── showMeEverything.png
 │   └── resources.qrc
 ```
 
@@ -80,19 +79,26 @@ showMeEverything
 ```
 cd /path/to/showMeEverything # whereever you downloaded it to
 sudo bash install
+or
+sudo ./install 
 ```
 >- that install script will take care of everything 
->- it first attepts to compile the qml GUI if that fails the script will continue 
->- also if that fails the script will inform you  -thats also why there is a python basic gui
->- then it will install the desktop entry files in /usr/local/share/applications/ creats dir if needed 
->- installs the icon at /usr/local/share/icons
->- and finally installs the cli and the 2 guis to /usr/local/bin/ assuming the QML build was seccessful
->- it also sets all the permissions to 555 leave the cloned repo if u want to edit the files
->- For QoL the cli and the guis get symlinks for shorter names comment them out if you dont want them
+>- it first detects if there is already a file at the installation path and asks for user aproval if yes 
+>- if there are files at the install paths it also checks for a signature to know if the app should proceed
+>- it also detects if the cloned repo is missing any parts incase someone only grabbed the cli and installer 
+>- if all those go fine the full install will build the qml gui and if that fails continues on to the next stages while  informing of the failure 
+>-  then installs the included files in there locations sets permissions and ownership pack to the user installes and registers the desktop entry files 
+>- then it will install the desktop entry files in /usr/local/share/applications/ creates dir if needed 
+>- the repo is not removed after install in the event you wish to edit the files and all that 
+>- each file gets a symlink if installed. smecli, smegpy, smegui
 >- you can re-run the install script anytime you grap an update off this repo, or anytime you modify the files 
+>- leave the signature at the top of the file its so the install script "
 ## Usage
 >-- i repeat
->-- Flags can overlap and will stack behavior unless explicitly overridden by mutually exclusive modes.
+>-- Flags can overlap and will stack behavior for the time being i recommend not stacking all flags with anything other then --pipe and or --less
+>-- the search <STRING> accepts the same formatting as grep to my knowledge like "dat|a|pa|rts"
+>-- Im still finding the full usage of this tool 
+
 
 ### CLI:
 >```
@@ -102,6 +108,10 @@ sudo bash install
 >smecli --home "" > home.txt # entire home directory listing
 >smecli --packages bash      # package manager aware package search
 >smecli --help               # shows all options
+>smecli --pipe --home ollama # --pipe = machine parseable formatting on the data stream to stdout
+#You can use this tool with command substitution and get some interesting outcomes
+>nano "$(smecli --pipe --home "showmeeverything|ollama")"
+
 >```
 
 ### GUI:
@@ -121,10 +131,16 @@ sudo bash install
 ## Philosophy
 
 >- Zero dependencies beyond shell + coreutils for the cli
->- Raw output, full system interrogation
->- --ALL dumps everything
+>- The Python GUI needs tkinter and the QML one needs qt6
+>- Raw output, full system interrogation 
+>- --ALL dumps everything 
 >- One function per probe, easy to reason about
 >- Pull requests and constructive criticism welcome
 >- Goal: spread knowledge and system awareness  
 >- this is a very powerful tool, if you are not a system administrator 
 >- you should probably just stop before u get yourself in trouble 
+
+
+## Security/Privacy
+
+>- No matter what unless you modify the code this tool will never traverse any other users home
