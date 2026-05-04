@@ -7,11 +7,11 @@ FOOTER=1 # 0=Inactive
 #header and footer functions for global use
 config_output() {
     if [ "$PIPE_MODE" -eq 0 ]; then
-        GREP_OPTS="-i -E --color=always"
+        GREP_OPTS=(-i -E --color=always)
         HEADER=1
         FOOTER=1
     else
-        GREP_OPTS="-i -E --color=never"
+        GREP_OPTS=(-i -E --color=never)
         HEADER=0
         FOOTER=0
     fi
@@ -35,6 +35,7 @@ footer() {
 EXCLUDES=(
     -not -path "*/.cache/*"
 )
+
 if [ -n "${ZSH_VERSION:-}" ]; then
     current_shell="zsh"
 elif [ -n "${BASH_VERSION:-}" ]; then
@@ -65,9 +66,9 @@ search_loaded_commands() {
     header0 "$info"
 
     if [ "$current_shell" = "zsh" ]; then
-        eval 'print -rl -- ${(k)commands}' | grep $GREP_OPTS -- "$1"
+        eval 'print -rl -- ${(k)commands}' | grep "${GREP_OPTS[@]}" -- "$1"
     elif [ "$current_shell" = "bash" ]; then
-        compgen -c | grep $GREP_OPTS -- "$1"
+        compgen -c | grep "${GREP_OPTS[@]}" -- "$1"
     fi
 }
 
@@ -76,9 +77,9 @@ search_builtins() {
     header0 "$info"
 
     if [ "$current_shell" = "zsh" ]; then
-        eval 'print -rl -- ${(k)builtins}' | grep $GREP_OPTS -- "$1"
+        eval 'print -rl -- ${(k)builtins}' | grep "${GREP_OPTS[@]}" -- "$1"
     elif [ "$current_shell" = "bash" ]; then
-        compgen -b | grep $GREP_OPTS -- "$1"
+        compgen -b | grep "${GREP_OPTS[@]}" -- "$1"
     fi
 }
 
@@ -87,16 +88,16 @@ search_shell_functions() {
     header0 "$info"
 
     if [ "$current_shell" = "zsh" ]; then
-        eval 'print -rl -- ${(k)functions}' | grep $GREP_OPTS -- "$1"
+        eval 'print -rl -- ${(k)functions}' | grep "${GREP_OPTS[@]}" -- "$1"
     elif [ "$current_shell" = "bash" ]; then
-        compgen -A function | grep $GREP_OPTS -- "$1"
+        compgen -A function | grep "${GREP_OPTS[@]}" -- "$1"
     fi
 }
 
 search_aliases() {
     local info="Searching shell aliases for $1..."
     header0 "$info"
-    alias | grep $GREP_OPTS -- "$1"
+    alias | grep "${GREP_OPTS[@]}" -- "$1"
 }
 
 {
@@ -128,14 +129,14 @@ search_aliases() {
             pacman_full_repo_search() {
                 local info="Searching Pacman repo for $1..."
                 header0 "$info"
-                pacman -Sl 2>/dev/null | grep $GREP_OPTS -- "$1"
+                pacman -Sl 2>/dev/null | grep "${GREP_OPTS[@]}" -- "$1"
             }
 
             # -------- installed ---------- #
             pacman_installed_packages_search() {
                 local info="Searching installed Pacman packages for $1..."
                 header0 "$info"
-                pacman -Q 2>/dev/null | grep $GREP_OPTS -- "$1"
+                pacman -Q 2>/dev/null | grep "${GREP_OPTS[@]}" -- "$1"
             }
 
             #--------not installed----------#
@@ -143,7 +144,7 @@ search_aliases() {
                 local info="Searching Pacman for packages not installed: $1..."
                 header0 "$info"
                 comm -23 \
-                    <(pacman -Slq 2>/dev/null | grep $GREP_OPTS -- "$1" | sort -u) \
+                    <(pacman -Slq 2>/dev/null | grep "${GREP_OPTS[@]}" -- "$1" | sort -u) \
                     <(pacman -Qq 2>/dev/null | sort -u)
             }
 
@@ -168,7 +169,7 @@ search_aliases() {
                 if [ -z "$1" ]; then
                     apt list 2>/dev/null
                 else
-                    apt list 2>/dev/null | grep $GREP_OPTS -- "$1"
+                    apt list 2>/dev/null | grep "${GREP_OPTS[@]}" -- "$1"
                 fi
             }
 
@@ -176,7 +177,7 @@ search_aliases() {
             apt_installed_packages_search() {
                 local info="Searching installed APT packages for $1..."
                 header0 "$info"
-                dpkg-query -W 2>/dev/null | grep $GREP_OPTS -- "$1"
+                dpkg-query -W 2>/dev/null | grep "${GREP_OPTS[@]}" -- "$1"
             }
 
             #--------not installed----------#
@@ -184,7 +185,7 @@ search_aliases() {
                 local info="Searching APT for packages not installed: $1..."
                 header0 "$info"
                 comm -23 \
-                    <(apt-cache pkgnames 2>/dev/null | grep $GREP_OPTS -- "$1" | sort -u) \
+                    <(apt-cache pkgnames 2>/dev/null | grep "${GREP_OPTS[@]}" -- "$1" | sort -u) \
                     <(dpkg-query -W -f='${binary:Package}\n' 2>/dev/null | sort -u)
             }
 
@@ -206,14 +207,14 @@ search_aliases() {
             dnf_full_repo_search() {
                 local info="Searching DNF repo for $1..."
                 header0 "$info"
-                dnf list available 2>/dev/null | grep $GREP_OPTS -- "$1"
+                dnf list available 2>/dev/null | grep "${GREP_OPTS[@]}" -- "$1"
             }
 
             # -------- installed ---------- #
             dnf_installed_packages_search() {
                 local info="Searching installed DNF packages for $1..."
                 header0 "$info"
-                dnf list installed 2>/dev/null | grep $GREP_OPTS -- "$1"
+                dnf list installed 2>/dev/null | grep "${GREP_OPTS[@]}" -- "$1"
             }
 
             #--------not installed----------#
@@ -221,7 +222,7 @@ search_aliases() {
                 local info="Searching DNF for packages not installed: $1..."
                 header0 "$info"
                 comm -23 \
-                    <(dnf list available 2>/dev/null | awk 'NR > 1 {print $1}' | sed 's/\.[^.[:space:]]*$//' | grep $GREP_OPTS -- "$1" | sort -u) \
+                    <(dnf list available 2>/dev/null | awk 'NR > 1 {print $1}' | sed 's/\.[^.[:space:]]*$//' | grep "${GREP_OPTS[@]}" -- "$1" | sort -u) \
                     <(dnf list installed 2>/dev/null | awk 'NR > 1 {print $1}' | sed 's/\.[^.[:space:]]*$//' | sort -u)
             }
 
@@ -243,14 +244,14 @@ search_aliases() {
             zypper_full_repo_search() {
                 local info="Searching Zypper repo for $1..."
                 header0 "$info"
-                zypper search 2>/dev/null | grep $GREP_OPTS -- "$1"
+                zypper search 2>/dev/null | grep "${GREP_OPTS[@]}" -- "$1"
             }
 
             # -------- installed ---------- #
             zypper_installed_packages_search() {
                 local info="Searching installed Zypper packages for $1..."
                 header0 "$info"
-                rpm -qa --qf '%{NAME} %{VERSION}-%{RELEASE}\n' 2>/dev/null | grep $GREP_OPTS -- "$1"
+                rpm -qa --qf '%{NAME} %{VERSION}-%{RELEASE}\n' 2>/dev/null | grep "${GREP_OPTS[@]}" -- "$1"
             }
 
             #--------not installed----------#
@@ -258,7 +259,7 @@ search_aliases() {
                 local info="Searching Zypper for packages not installed: $1..."
                 header0 "$info"
                 comm -23 \
-                    <(zypper search 2>/dev/null | awk 'NR > 4 {print $3}' | grep $GREP_OPTS -- "$1" | sort -u) \
+                    <(zypper search 2>/dev/null | awk 'NR > 4 {print $3}' | grep "${GREP_OPTS[@]}" -- "$1" | sort -u) \
                     <(rpm -qa --qf '%{NAME}\n' 2>/dev/null | sort -u)
             }
 
@@ -266,7 +267,7 @@ search_aliases() {
             zypper_files_db_search() {
                 local info="Searching Zypper/RPM file ownership for $1..."
                 header0 "$info"
-                rpm -qal 2>/dev/null | grep $GREP_OPTS -- "$1"
+                rpm -qal 2>/dev/null | grep "${GREP_OPTS[@]}" -- "$1"
             }
         }
     }
@@ -280,14 +281,14 @@ search_aliases() {
             apk_full_repo_search() {
                 local info="Searching APK repo for $1..."
                 header0 "$info"
-                apk search 2>/dev/null | grep $GREP_OPTS -- "$1"
+                apk search 2>/dev/null | grep "${GREP_OPTS[@]}" -- "$1"
             }
 
             # -------- installed ---------- #
             apk_installed_packages_search() {
                 local info="Searching installed APK packages for $1..."
                 header0 "$info"
-                apk info 2>/dev/null | grep $GREP_OPTS -- "$1"
+                apk info 2>/dev/null | grep "${GREP_OPTS[@]}" -- "$1"
             }
 
             #--------not installed----------#
@@ -295,7 +296,7 @@ search_aliases() {
                 local info="Searching APK for packages not installed: $1..."
                 header0 "$info"
                 comm -23 \
-                    <(apk search 2>/dev/null | sed 's/-[0-9].*$//' | grep $GREP_OPTS -- "$1" | sort -u) \
+                    <(apk search 2>/dev/null | sed 's/-[0-9].*$//' | grep "${GREP_OPTS[@]}" -- "$1" | sort -u) \
                     <(apk info 2>/dev/null | sort -u)
             }
 
@@ -303,7 +304,7 @@ search_aliases() {
             apk_files_db_search() {
                 local info="Searching APK file ownership for $1..."
                 header0 "$info"
-                apk info -L 2>/dev/null | grep $GREP_OPTS -- "$1"
+                apk info -L 2>/dev/null | grep "${GREP_OPTS[@]}" -- "$1"
             }
         }
     }
@@ -366,7 +367,7 @@ search_manpages() {
     header0 "$info"
 
     if command -v apropos >/dev/null 2>&1; then
-        apropos -w "$wcs" | grep $GREP_OPTS -- "$1"
+        apropos -w "$wcs" | grep "${GREP_OPTS[@]}" -- "$1"
     fi
 }
 
@@ -375,14 +376,14 @@ search_systemd_units() {
     header0 "$info"
 
     if command -v systemctl >/dev/null 2>&1; then
-        systemctl list-unit-files 2>/dev/null | grep $GREP_OPTS -- "$1"
+        systemctl list-unit-files 2>/dev/null | grep "${GREP_OPTS[@]}" -- "$1"
     fi
 }
 
 search_running_processes() {
     local info="Searching running processes for $1..."
     header0 "$info"
-    ps aux 2>/dev/null | grep $GREP_OPTS -- "$1"
+    ps aux 2>/dev/null | grep "${GREP_OPTS[@]}" -- "$1"
 }
 
 loaded_kernel_modules() {
@@ -390,7 +391,7 @@ loaded_kernel_modules() {
     header0 "$info"
 
     if command -v lsmod >/dev/null 2>&1; then
-        lsmod 2>/dev/null | grep $GREP_OPTS -- "$1"
+        lsmod 2>/dev/null | grep "${GREP_OPTS[@]}" -- "$1"
     fi
 }
 
@@ -483,42 +484,46 @@ Version:3.0\n
 	(*)smecli [--ALL]   \n
 	(*)smecli [--all]   \n
 \n
-(*) these flags if ran with an empty search param will do a full sysytem dump, performance will vary\n	
+(*) these flags if ran with an empty search param will do a full sysytem dump, performance will vary\n
 search parameters are optional for every Flag both long and short, at least 1 flag \n
 is required to function, some arguments can be stacked for more controlled output. \n
 Flags can overlap and will stack behavior unless explicitly overridden by mutually exclusive modes.\n
 the flags [--ALL|-A][--all] [--system|-R] will produce a seriously large ammount of data if\n
-ran without a search parameter for older systems i recomend redirection or --less 
---excludeDotFiles | --nodot		exclude ALL dot files from any \$HOME-based searches (legacy home search module) \n
---less                                  pipe output through less for pagination \n
+ran without a search parameter for older systems i recomend redirection or --less \n
 
---ALL | -A <STRING>                     search commands, manpages, packages, PATH, system, and filesystem for <STRING>\n
+--excludeDotFiles | --nodot             exclude ALL dot files from any \$HOME-based searches (legacy home search module) \n
+--less                                  pipe output through less for pagination \n
+--pipe | pipe                           enable PIPE_MODE for downstream handling (internal behavior toggle) \n
+
+--ALL | ALL | -A | A <STRING>           search commands, manpages, packages, PATH, system, and filesystem for <STRING>\n
 						(full aggressive global scan mode) \n
---all <STRING>                          similar to --ALL but no --system (no /sys, reduced system scan footprint) \n
---aliases | -a <STRING>                 search shell aliases for <STRING> \n
---bin | --bin <STRING>                  search /bin executables only \n
---boot | -B <STRING>                    search /boot system boot files only \n
---builtins | -b <STRING>                search shell builtins for <STRING> \n
---command | -c <STRING>                 search for <STRING> in loaded shell command list \n
---etc | -E <STRING>                     search /etc configuration directory only \n
---files | -F <STRING>                   search package-managed file database for <STRING> \n
---functions | -f <STRING>               search loaded shell functions for <STRING> \n
---help | -h                             print this help message \n
---home | -H <STRING>                    search your \$HOME directory for <STRING> \n
---installed | -i <STRING>               search installed packages for <STRING> \n
---lib | -L <STRING>                     search /lib system libraries only \n
---modules | -m <STRING>                 search loaded kernel modules for <STRING> \n
---manpages | --man <STRING>             search manpage descriptions for <STRING> \n
---not-installed | -n <STRING>           a special pkg search that shows the diff between all pks in repo and the installed list to give you the ones not installed\n
---opt | -O <STRING>                     search /opt third-party software directory only \n
---packages | -p | --pkg <STRING>        search detected package manager database for <STRING> \n
---path | -P <STRING>                    search shell \$PATH for <STRING> \n
---process | -x <STRING>                 search running processes for <STRING> \n
---sbin | --sbin <STRING>                search /sbin system executables only \n
---systemd | -s <STRING>                 search systemd unit files for <STRING> \n
---system | -R <STRING>                  search system directories (/usr, /etc, /sys, /var, /opt, /boot, /lib, /bin, /sbin) for <STRING> \n
---usr | -U <STRING>                     search /usr directory only (refined system scan module) \n
---var | -V <STRING>                     search /var directory only (logs, caches, state data) \n
+--all | all <STRING>                    similar to --ALL but no --system (no /sys, reduced system scan footprint) \n
+
+--aliases | aliases | -a | a <STRING>   search shell aliases for <STRING> \n
+--bin | bin <STRING>                    search /bin executables only \n
+--boot | boot | -B | B <STRING>         search /boot system boot files only \n
+--builtins | builtins | -b | b <STRING> search shell builtins for <STRING> \n
+--command | command | -c | c <STRING>   search for <STRING> in loaded shell command list \n
+--etc | etc | -E | E <STRING>           search /etc configuration directory only \n
+--files | files | -F | F <STRING>       search package-managed file database for <STRING> \n
+--functions | functions | -f | f <STRING> search loaded shell functions for <STRING> \n
+--help | help | -h | h                  print this help message \n
+--home | home | -H | H <STRING>         search your \$HOME directory for <STRING> \n
+--installed | installed | -i | i <STRING> search installed packages for <STRING> \n
+--lib | lib | -L | L <STRING>           search /lib system libraries only \n
+--modules | modules | -m | m <STRING>   search loaded kernel modules for <STRING> \n
+--manpages | manpages | --man | man | -M | M <STRING> search manpage descriptions for <STRING> \n
+--not-installed | not-installed | -n | n <STRING> a special pkg search that shows the diff between all pkgs in repo and the installed list to give you the ones not installed\n
+--opt | opt | -O | O <STRING>           search /opt third-party software directory only \n
+--packages | packages | -p | p | --pkg | pkg <STRING> search detected package manager database for <STRING> \n
+--path | path | -P | P <STRING>         search shell \$PATH for <STRING> \n
+--process | process | -x | x <STRING>   search running processes for <STRING> \n
+--sbin | sbin <STRING>                 search /sbin system executables only \n
+--systemd | systemd | -s | s <STRING>   search systemd unit files for <STRING> \n
+--system | system | -R | R <STRING>     search system directories (/usr, /etc, /sys, /var, /opt, /boot, /lib, /bin, /sbin) for <STRING> \n
+--usr | usr | -U | U <STRING>           search /usr directory only (refined system scan module) \n
+--var | var | -V | V <STRING>           search /var directory only (logs, caches, state data) \n
+
 Note:
 many search domain [--ALL|-all] will print a header to help to make large outputs easier to handle when redirected to a file or piped to less. \n
 if you wish to pipe the output into less i recomend using the built in --less flag\n"
@@ -535,14 +540,18 @@ search() {
     local -a actions=()
     local use_less=false
     local exclude_dotfiles=false
+    local has_ALL=false
+    local has_all=false
+    local has_system=false
+    local original_args=("$@")
 
     while [ $# -gt 0 ]; do
         case "$1" in
             --excludeDotFiles | --nodot) exclude_dotfiles=true ;;
             --less) use_less=true ;;
-            --pipe) PIPE_MODE=1 ;;
+            --pipe | pipe ) PIPE_MODE=1 ;;
 
-            --ALL | -A)
+            --ALL | ALL | -A | A )
                 actions+=(
                     search_path
                     search_loaded_commands
@@ -562,7 +571,7 @@ search() {
                 )
                 ;;
 
-            --all)
+            --all | all )
                 actions+=(
                     search_path
                     search_loaded_commands
@@ -579,32 +588,31 @@ search() {
                 )
                 ;;
 
-            --aliases | -a) actions+=(search_aliases) ;;
-            --builtins | -b) actions+=(search_builtins) ;;
-            --command | -c) actions+=(search_loaded_commands) ;;
-            --files | -F) actions+=(search_package_files_db) ;;
-            --functions | -f) actions+=(search_shell_functions) ;;
-            --home | -H) actions+=(search_home_directory) ;;
-            --installed | -i) actions+=(search_installed_packages) ;;
-            --manpages | --man) actions+=(search_manpages) ;;
-            --modules | -m) actions+=(loaded_kernel_modules) ;;
-            --not-installed | -n) actions+=(search_packages_not_installed) ;;
-            --process | -x) actions+=(search_running_processes) ;;
-            --packages | -p | --pkg) actions+=(search_package_repo) ;;
-            --path | -P) actions+=(search_path) ;;
-            --systemd | -s) actions+=(search_systemd_units) ;;
-            --system | -R) actions+=(search_system_dirs) ;;
-            # NEW refined system directory flags
-            --usr|U) actions+=(search_usr) ;;
-            --etc|-E) actions+=(search_etc) ;;
-            --var|-V) actions+=(search_var) ;;
-            --opt|-O) actions+=(search_opt) ;;
-            --boot|-B) actions+=(search_boot) ;;
-            --lib|-L) actions+=(search_lib) ;;
-            --bin|--bin) actions+=(search_bin) ;;
-            --sbin|--sbin) actions+=(search_sbin) ;;
+            --aliases | aliases | -a | a) actions+=(search_aliases) ;;
+            --bin | bin ) actions+=(search_bin) ;;
+            --boot | boot | -B | B ) actions+=(search_boot) ;;
+            --builtins | builtins | -b | b) actions+=(search_builtins) ;;
+            --command | command | -c | c) actions+=(search_loaded_commands) ;;
+            --etc | etc | -E | E ) actions+=(search_etc) ;;
+            --files | files | -F | F ) actions+=(search_package_files_db) ;;
+            --functions | functions | -f | f ) actions+=(search_shell_functions) ;;
+            --home | home | -H | H ) actions+=(search_home_directory) ;;
+            --installed | installed | -i | i ) actions+=(search_installed_packages) ;;
+            --lib | lib | -L | L ) actions+=(search_lib) ;;
+            --manpages | manpages | --man | man | -M | M ) actions+=(search_manpages) ;;
+            --modules | modules | -m | m) actions+=(loaded_kernel_modules) ;;
+            --not-installed | not-installed | -n | n ) actions+=(search_packages_not_installed) ;;
+            --process | process | -x | x ) actions+=(search_running_processes) ;;
+            --packages | packages | -p | p | --pkg | pkg) actions+=(search_package_repo) ;;
+            --path | path | -P | P ) actions+=(search_path) ;;
+            --sbin | sbin ) actions+=(search_sbin) ;;
+            --systemd | systemd | -s | s ) actions+=(search_systemd_units) ;;
+            --system | system | -R | R ) actions+=(search_system_dirs) ;;
+            --usr | usr | -U | U ) actions+=(search_usr) ;;
+            --var | var | -V | V ) actions+=(search_var) ;;
+            --opt | opt | -O | O ) actions+=(search_opt) ;;
 
-            --help | -h) help; return ;;
+            --help | -h | help | h ) help; return ;;
             *)
                 pattern="$1"
                 ;;
@@ -612,11 +620,38 @@ search() {
         shift
     done
 
+    for arg in "${original_args[@]}"; do
+        case "$arg" in
+            --ALL|ALL|-A|A) has_ALL=true ;;
+            --all|all) has_all=true ;;
+            --system|system|-R|R) has_system=true ;;
+        esac
+    done
+    if { [ "$has_ALL" = true ] && [ "$has_all" = true ]; } || \
+       { [ "$has_ALL" = true ] && [ "$has_system" = true ]; } || \
+       { [  "$has_all" = true ] && [ "$has_system" = true ]; }; then
+        echo "WARNING: conflicting flags detected: ALL|all|system are mutually exclusive."
+        echo "$0: For more info try [$0 help]: returning. with exit code 1"
+        return 1
+    fi
+    if [ "$has_ALL" = true ] || [ "$has_all" = true ]; then
+        for fn in "${actions[@]}"; do
+            case "$fn" in
+                search_path|search_loaded_commands|search_builtins|search_aliases|search_shell_functions|search_manpages|search_systemd_units|search_running_processes|loaded_kernel_modules|search_package_repo|search_installed_packages|search_package_files_db|search_packages_not_installed|search_home_directory|search_system_dirs)
+                    # allowed (part of ALL/all)
+                    ;;
+                *)
+                    echo "$0: when using ALL/all, only --less, --pipe, --excludeDotFiles are allowed alongside"
+                    return 1
+                    ;;
+            esac
+        done
+    fi
     config_output
 
     [ ${#actions[@]} -eq 0 ] && {
-        echo "search: No search flags given"
-        echo "Search: for more information try [search --help]"
+        echo "$0: No search flags given"
+        echo "$0: for more information try [$0 help]"
         return 1
     }
 

@@ -17,33 +17,54 @@ ApplicationWindow {
     property var flagMap: ({
         "excludeDotFiles": "--excludeDotFiles",
         "nodot": "--nodot",
-
         "ALL": "--ALL",
+        "A": "--ALL",
         "all": "--all",
-
         "aliases": "--aliases",
+        "a": "--aliases",
         "builtins": "--builtins",
+        "b": "--builtins",
         "command": "--command",
+        "c": "--command",
         "files": "--files",
+        "F": "--files",
         "functions": "--functions",
+        "f": "--functions",
         "help": "--help",
+        "h": "--help",
         "home": "--home",
+        "H": "--home",
         "installed": "--installed",
+        "i": "--installed",
         "manpages": "--manpages",
+        "man": "--manpages",
+        "M": "--manpages",
         "modules": "--modules",
+        "m": "--modules",
         "process": "--process",
+        "x": "--process",
         "packages": "--packages",
+        "pkg": "--packages",
+        "p": "--packages",
         "path": "--path",
+        "P": "--path",
         "systemd": "--systemd",
+        "s": "--systemd",
         "system": "--system",
-
-        // refined system dirs (the ones you just added)
+        "R": "--system",
+        // refined system dirs
         "usr": "--usr",
+        "U": "--usr",
         "etc": "--etc",
+        "E": "--etc",
         "var": "--var",
+        "V": "--var",
         "opt": "--opt",
+        "O": "--opt",
         "boot": "--boot",
+        "B": "--boot",
         "lib": "--lib",
+        "L": "--lib",
         "bin": "--bin",
         "sbin": "--sbin"
     })
@@ -185,7 +206,7 @@ ApplicationWindow {
             spacing: 5
 
             Repeater {
-                model: ["all", "packages", "installed", "files", "system", "home"]
+                model: ["all", "path", "installed", "system", "home"]
 
                 Button {
                     text: modelData

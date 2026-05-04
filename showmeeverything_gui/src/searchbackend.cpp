@@ -9,44 +9,45 @@ SearchBackend::SearchBackend(QObject* parent)
     , m_running(false)
 {
     m_allowedArgs = QStringList()
-    << "--ALL" << "-A"
-    << "--all"
+    << "--ALL" << "-A" << "ALL" << "A"
+    << "--all" << "all"
 
-    << "--aliases" << "-a"
-    << "--builtins" << "-B"
-    << "--command" << "-c"
-    << "--files" << "-F"
-    << "--functions" << "-f"
+    << "--aliases" << "-a" << "aliases" << "a"
+    << "--builtins" << "-b" << "builtins" << "b"
+    << "--command" << "-c" << "command" << "c"
+    << "--files" << "-F" << "files" << "F"
+    << "--functions" << "-f" << "functions" << "f"
 
-    << "--help" << "-h"
+    << "--help" << "-h" << "help" << "h"
 
-    << "--home" << "-H"
-    << "--installed" << "-i"
+    << "--home" << "-H" << "home" << "H"
+    << "--installed" << "-i" << "installed" << "i"
 
-    << "--manpages" << "--man"
-    << "--modules" << "-m"
+    << "--manpages" << "--man" << "-M" << "manpages" << "man" << "M"
 
-    << "--process" << "-x"
+    << "--modules" << "-m" << "modules" << "m"
 
-    << "--packages" << "-p" << "--pkg"
+    << "--process" << "-x" << "process" << "x"
 
-    << "--path" << "-P"
+    << "--packages" << "-p" << "--pkg" << "packages" << "pkg" << "p"
 
-    << "--systemd" << "-s"
+    << "--path" << "-P" << "path" << "P"
 
-    << "--system" << "-R"
+    << "--systemd" << "-s" << "systemd" << "s"
 
-    << "--excludeDotFiles" << "--nodot"
+    << "--system" << "-R" << "system" << "R"
 
-    // NEW refined system search flags
-    << "--usr" << "-U"
-    << "--etc" << "-E"
-    << "--var" << "-V"
-    << "--opt" << "-O"
-    << "--boot" << "-b"
-    << "--lib" << "-L"
-    << "--bin"
-    << "--sbin";
+    << "--excludeDotFiles" << "--nodot" << "excludeDotFiles" << "nodot"
+
+    // refined system search flags
+    << "--usr" << "-U" << "usr" << "U"
+    << "--etc" << "-E" << "etc" << "E"
+    << "--var" << "-V" << "var" << "V"
+    << "--opt" << "-O" << "opt" << "O"
+    << "--boot" << "-B" << "boot" << "B"
+    << "--lib" << "-L" << "lib" << "L"
+    << "--bin" << "bin"
+    << "--sbin" << "sbin";
 }
 void SearchBackend::runSearch(const QString& args)
 {
