@@ -41,6 +41,8 @@ ApplicationWindow {
         "M": "--manpages",
         "modules": "--modules",
         "m": "--modules",
+        "not-installed": "--not-installed",
+        "n": "--not-installed",
         "process": "--process",
         "x": "--process",
         "packages": "--packages",

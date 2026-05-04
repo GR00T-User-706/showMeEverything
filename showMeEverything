@@ -1,9 +1,10 @@
-#!/usr/bin/env bash
+#!/usr/bin/env zsh
 # SME_SIGNATURE=gr00t-user-706
 # GLOBAL CONFIG DEFAULT STATE
 PIPE_MODE=0 # 0=off 1=on for MACHINE parse-able output formatting
 HEADER=1 # 1=Active
 FOOTER=1 # 0=Inactive
+DEBUG=false # set to true or false or use the hidden debug flag
 #header and footer functions for global use
 config_output() {
     if [ "$PIPE_MODE" -eq 0 ]; then
@@ -142,10 +143,10 @@ search_aliases() {
             #--------not installed----------#
             pacman_search_not_installed() {
                 local info="Searching Pacman for packages not installed: $1..."
+                local installed=$(pacman -Qq 2>/dev/null | sort -u)
                 header0 "$info"
-                comm -23 \
-                    <(pacman -Slq 2>/dev/null | grep "${GREP_OPTS[@]}" -- "$1" | sort -u) \
-                    <(pacman -Qq 2>/dev/null | sort -u)
+
+                pacman -Slq 2>/dev/null | grep "${GREP_OPTS[@]}" -- "${1:-.}" | sort -u | comm -23 - <(printf "%s\n" "$installed")
             }
 
             # --------- files DB ---------- #
@@ -430,12 +431,17 @@ search_system_dirs() {
 
 
 search_usr() {
-    [ -d /usr ] || return
+    local info="Searching /dir for $1..."
+    header0 "$info"
 
+    [ -d /usr ] || return
     find /usr -iname "*$1*" "${EXCLUDES[@]}" 2>/dev/null
 }
 
 search_etc() {
+    local info="Searching /etc for $1..."
+    header0 "$info"
+
     [ -d /etc ] || return
     find /etc -iname "*$1*" "${EXCLUDES[@]}" 2>/dev/null
 }
@@ -528,13 +534,19 @@ Note:
 many search domain [--ALL|-all] will print a header to help to make large outputs easier to handle when redirected to a file or piped to less. \n
 if you wish to pipe the output into less i recomend using the built in --less flag\n"
 }
-
-run_full_system_discovery() {
-    if [ "$EUID" -ne 0 ]; then
-        echo "search_system_dirs: root privileges required to search system directories."
-        return 1
+debug_interpreter() {
+    if [[ "$DEBUG" == true ]]; then
+        echo "INTERPRETER: $0"
+        ps -p $$ -o comm=
     fi
 }
+# run_full_system_discovery() {
+#    if [ "$EUID" -ne 0 ]; then
+#        echo "search_system_dirs: root privileges required to search system directories."
+#        return 1
+#    fi#
+# }
+
 search() {
     local pattern=""
     local -a actions=()
@@ -545,12 +557,13 @@ search() {
     local has_system=false
     local original_args=("$@")
 
+
     while [ $# -gt 0 ]; do
         case "$1" in
             --excludeDotFiles | --nodot) exclude_dotfiles=true ;;
             --less) use_less=true ;;
             --pipe | pipe ) PIPE_MODE=1 ;;
-
+            --debug|debug)DEBUG=true ;;
             --ALL | ALL | -A | A )
                 actions+=(
                     search_path
@@ -672,5 +685,5 @@ search() {
     footer
 }
 
-
 search "$@"
+debug_interpreter
