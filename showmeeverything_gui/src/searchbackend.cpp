@@ -2,7 +2,7 @@
 #include <QDebug>
 #include <QUrl>
 #include <QTimer>
-
+// SME_SIGNATURE=gr00t-user-706
 SearchBackend::SearchBackend(QObject* parent)
     : QObject(parent)
     , m_process(nullptr)
@@ -11,7 +11,7 @@ SearchBackend::SearchBackend(QObject* parent)
     m_allowedArgs = QStringList()
     << "--ALL" << "-A" << "ALL" << "A"
     << "--all" << "all"
-
+    << "--pipe" << "pipe"
     << "--aliases" << "-a" << "aliases" << "a"
     << "--builtins" << "-b" << "builtins" << "b"
     << "--command" << "-c" << "command" << "c"
@@ -130,7 +130,7 @@ void SearchBackend::setRunning(bool running)
 }
 void SearchBackend::saveToFile(const QString& fileUrlString)
 {
-    QUrl url(fileUrlString);
+    QUrl url = QUrl::fromUserInput(fileUrlString);
     QString localPath = url.toLocalFile();
     if (localPath.isEmpty()) {
         appendOutput("Error: Invalid file path.\n");

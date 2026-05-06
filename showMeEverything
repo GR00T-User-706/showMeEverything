@@ -1,10 +1,11 @@
-#!/usr/bin/env zsh
+#!/usr/bin/env sh
 # SME_SIGNATURE=gr00t-user-706
 # GLOBAL CONFIG DEFAULT STATE
+VERSION="v1.0.1"
 PIPE_MODE=0 # 0=off 1=on for MACHINE parse-able output formatting
 HEADER=1 # 1=Active
 FOOTER=1 # 0=Inactive
-DEBUG=false # set to true or false or use the hidden debug flag
+REGEX=1
 #header and footer functions for global use
 config_output() {
     if [ "$PIPE_MODE" -eq 0 ]; then
@@ -57,11 +58,15 @@ search_path() {
     IFS=':'
     for dir in $PATH; do
         [ -d "$dir" ] || continue
-        find "$dir" "${EXCLUDES[@]}" -iname "*$1*" 2>/dev/null
+
+        if [ "$REGEX" -eq 1 ]; then
+            find "$dir" "${EXCLUDES[@]}" -type f 2>/dev/null | grep "${GREP_OPTS[@]}" -- "$1"
+        else
+            find "$dir" "${EXCLUDES[@]}" -iname "*$1*" 2>/dev/null
+        fi
     done
     unset IFS
 }
-
 search_loaded_commands() {
     local info="Searching loaded shell commands for $1..."
     header0 "$info"
@@ -141,13 +146,14 @@ search_aliases() {
             }
 
             #--------not installed----------#
-            pacman_search_not_installed() {
+            pacman_search_not_installed() (
+                local PIPE_MODE=1
                 local info="Searching Pacman for packages not installed: $1..."
-                local installed=$(pacman -Qq 2>/dev/null | sort -u)
                 header0 "$info"
-
-                pacman -Slq 2>/dev/null | grep "${GREP_OPTS[@]}" -- "${1:-.}" | sort -u | comm -23 - <(printf "%s\n" "$installed")
-            }
+                comm -23 \
+                    <(pacman -Slq 2>/dev/null | grep "${GREP_OPTS[@]}" -- "$1" | sort -u) \
+                    <(pacman -Qq 2>/dev/null | sort -u)
+            )
 
             # --------- files DB ---------- #
             pacman_files_db_search() {
@@ -404,31 +410,43 @@ search_home_directory() {
     header0 "$info"
 
     if [ "$exclude_dotfiles" == true ]; then
-          if [ -z "$1" ]; then
+        if [ -z "$1" ]; then
             find "$HOME" -type d \( $(printf "! -path %s " "$dotfiles" "$exclude_dirs") \) -print 2>/dev/null
         else
-            find "$HOME" -iname "*$1*" "${EXCLUDES[@]}" 2>/dev/null
+            if [ "$REGEX" -eq 1 ]; then
+                find "$HOME" "${EXCLUDES[@]}" -type f 2>/dev/null | grep "${GREP_OPTS[@]}" -- "$1"
+            else
+                find "$HOME" -iname "*$1*" "${EXCLUDES[@]}" 2>/dev/null
+            fi
         fi
     else
         if [ -z "$1" ]; then
             find "$HOME" -type d \( $(printf "! -path %s " "$exclude_dirs") \) -print 2>/dev/null
         else
-            find "$HOME" -iname "*$1*" "${EXCLUDES[@]}" 2>/dev/null
+            if [ "$REGEX" -eq 1 ]; then
+                find "$HOME" "${EXCLUDES[@]}" -type f 2>/dev/null | grep "${GREP_OPTS[@]}" -- "$1"
+            else
+                find "$HOME" -iname "*$1*" "${EXCLUDES[@]}" 2>/dev/null
+            fi
         fi
     fi
 }
 search_system_dirs() {
     local info="Searching system directories (/usr, /etc, /sys, /var, /opt, /boot, /lib, /bin, /sbin) for $1 (excluding .cache)..."
-    local dirs=(/usr /etc /sys /var /opt /boot /lib /bin /sbin)
+    local dirs=(/usr /etc /sys /dev /var /opt /boot /lib /bin /sbin)
     local d
     header0 "$info"
 
     for d in "${dirs[@]}"; do
         [ -d "$d" ] || continue
-        find "$d" -iname "*$1*" -not -path "$HOME/.cache/*" 2>/dev/null
+
+        if [ "$REGEX" -eq 1 ]; then
+            find "$d" -type f -not -path "$HOME/.cache/*" 2>/dev/null | grep "${GREP_OPTS[@]}" -- "$1"
+        else
+            find "$d" -iname "*$1*" -not -path "$HOME/.cache/*" 2>/dev/null
+        fi
     done
 }
-
 
 search_usr() {
     local info="Searching /dir for $1..."
@@ -447,36 +465,53 @@ search_etc() {
 }
 
 search_sys() {
+    local info="Searching /sys for $1..."
+    header0 "$info"
+
     [ -d /sys ] || return
     find /sys -iname "*$1*" "${EXCLUDES[@]}" 2>/dev/null
 }
 
 search_var() {
+    local info="Searching /var for $1..."
+    header0 "$info"
+
     [ -d /var ] || return
     find /var -iname "*$1*" "${EXCLUDES[@]}" 2>/dev/null
 }
 
 search_opt() {
+    local info="Searching /opt for $1..."
+    header0 "$info"
+
     [ -d /opt ] || return
     find /opt -iname "*$1*" "${EXCLUDES[@]}" 2>/dev/null
 }
 
 search_boot() {
+    local info="Searching /boot for $1..."
+    header0 "$info"
     [ -d /boot ] || return
     find /boot -iname "*$1*" "${EXCLUDES[@]}" 2>/dev/null
 }
 
 search_lib() {
+    local info="Searching /lib for $1..."
+    header0 "$info"
     [ -d /lib ] || return
     find /lib -iname "*$1*" "${EXCLUDES[@]}" 2>/dev/null
 }
 
 search_bin() {
+    local info="Searching /bin for $1..."
+    header0 "$info"
     [ -d /bin ] || return
     find /bin -iname "*$1*" "${EXCLUDES[@]}" 2>/dev/null
 }
 
 search_sbin() {
+    local info="Searching /sbin for $1..."
+    header0 "$info"
     [ -d /sbin ] || return
     find /sbin -iname "*$1*" "${EXCLUDES[@]}" 2>/dev/null
 }
@@ -534,12 +569,7 @@ Note:
 many search domain [--ALL|-all] will print a header to help to make large outputs easier to handle when redirected to a file or piped to less. \n
 if you wish to pipe the output into less i recomend using the built in --less flag\n"
 }
-debug_interpreter() {
-    if [[ "$DEBUG" == true ]]; then
-        echo "INTERPRETER: $0"
-        ps -p $$ -o comm=
-    fi
-}
+
 # run_full_system_discovery() {
 #    if [ "$EUID" -ne 0 ]; then
 #        echo "search_system_dirs: root privileges required to search system directories."
@@ -557,13 +587,15 @@ search() {
     local has_system=false
     local original_args=("$@")
 
-
     while [ $# -gt 0 ]; do
         case "$1" in
             --excludeDotFiles | --nodot) exclude_dotfiles=true ;;
             --less) use_less=true ;;
             --pipe | pipe ) PIPE_MODE=1 ;;
-            --debug|debug)DEBUG=true ;;
+            --glob|glob) REGEX=0 ;;
+            -v|--version) echo "$VERSION" ;;
+
+
             --ALL | ALL | -A | A )
                 actions+=(
                     search_path
@@ -686,4 +718,4 @@ search() {
 }
 
 search "$@"
-debug_interpreter
+

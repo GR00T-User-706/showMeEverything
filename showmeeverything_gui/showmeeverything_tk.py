@@ -83,7 +83,7 @@ def run_search(event=None):
         output_text.configure(state="normal")
         output_text.delete(1.0, tk.END)
         output_text.insert(
-            tk.END, "Please enter a Valid argument try [--help] for options\n"
+            tk.END, "Please enter a Valid argument press the help button for more options\n"
         )
         output_text.configure(state="disabled")
         return

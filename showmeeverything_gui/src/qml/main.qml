@@ -3,6 +3,7 @@ import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
 import QtQuick.Window 2.15
+// SME_SIGNATURE=gr00t-user-706
 
 ApplicationWindow {
     id: mainWindow
@@ -16,6 +17,7 @@ ApplicationWindow {
     // Friendly flag mapping
     property var flagMap: ({
         "excludeDotFiles": "--excludeDotFiles",
+        "pipe": "--pipe",
         "nodot": "--nodot",
         "ALL": "--ALL",
         "A": "--ALL",
@@ -320,7 +322,7 @@ ApplicationWindow {
         folder: StandardPaths.writableLocation(StandardPaths.HomeLocation)
         fileMode: FileDialog.SaveFile // This makes it a "Save As" dialog
         onAccepted: {
-            searchBackend.saveToFile(fileDialog.fileUrl.toString());
+            searchBackend.saveToFile(fileDialog.selectedFile.toString())
         }
     }
 

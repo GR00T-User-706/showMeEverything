@@ -1,19 +1,17 @@
 [Desktop Entry]
-Categories=Utility;System;
+Categories=Utility
 Comment[en_US]=Powerful System Search Engine Fallback Window
 Comment=Powerful System Search Engine Fallback Window
 Exec=/usr/local/bin/showmeeverything_tk
 GenericName[en_US]=system_search_engine
 GenericName=system_search_engine
 Icon=/usr/local/share/icons/showMeEverything.png
-MimeType=
 Name[en_US]=ShowMeEverything Fallback
 Name=ShowMeEverything Fallback
-Path=
 StartupNotify=true
 Terminal=false
-TerminalOptions=
 Type=Application
 X-KDE-SubstituteUID=false
-X-KDE-Username=
+X-Desktop-File-Install-Version=0.28
 #PY TK GUI
+# SME_SIGNATURE=gr00t-user-706

@@ -1,6 +1,6 @@
 #ifndef SEARCHBACKEND_H
 #define SEARCHBACKEND_H
-
+// SME_SIGNATURE=gr00t-user-706
 #include <QClipboard> // Add this
 #include <QFile>
 #include <QGuiApplication> // Add this

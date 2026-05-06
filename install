@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# SME_SIGNATURE=gr00t-user-706
 set -e
 
 # --- Colors for output ---
@@ -268,14 +269,24 @@ install_desktop_entries() {
 
     # Install Qt desktop entry if Qt GUI was installed
     if [ "$QT_INSTALLED" -eq 1 ] && [ -f "$SMEGUID_SRC" ]; then
-        install -m 644 "$SMEGUID_SRC" /usr/local/share/applications/
+        if command -v desktop-file-install >/dev/null 2>&1; then
+            desktop-file-install -m 644 --dir /usr/local/share/applications/  "$SMEGUID_SRC"
+        else
+            echo -e "${YELLOW}desktop-file-install not found, using raw install (no validation)${NC}"
+            install -m 644 "$SMEGUID_SRC" /usr/local/share/applications/
+        fi
     elif [ "$INSTALL_MODE" = "full" ]; then
         echo -e "${YELLOW}Skipping Qt desktop entry (Qt GUI not installed).${NC}"
     fi
 
     # Install Python desktop entry if Python GUI was installed
     if [ "$PYTHON_INSTALLED" -eq 1 ] && [ -f "$SMEGPYD_SRC" ]; then
-        install -m 644 "$SMEGPYD_SRC" /usr/local/share/applications/
+        if command -v desktop-file-install >/dev/null 2>&1; then
+            desktop-file-install -m 644 --dir /usr/local/share/applications/ "$SMEGPYD_SRC"
+        else
+            echo -e "${YELLOW}desktop-file-install not found, using raw install (no validation)${NC}"
+            install -m 644 "$SMEGPYD_SRC" /usr/local/share/applications/
+        fi
     elif [ "$INSTALL_MODE" = "full" ]; then
         echo -e "${YELLOW}Skipping Python desktop entry (Python GUI not installed).${NC}"
     fi

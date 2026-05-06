@@ -1,19 +1,16 @@
 [Desktop Entry]
-Categories=Utility;System;
+Categories=Utility
 Comment[en_US]=Powerful System Search Engine, QML/C++ KDE NAtive
 Comment=Powerful System Search Engine, QML/C++ KDE NAtive
 Exec=/usr/local/bin/showmeeverything_qml
 GenericName[en_US]=System Search Engine
 GenericName=System Search Engine
 Icon=/usr/local/share/icons/showMeEverything.png
-MimeType=
 Name[en_US]=Show Me Everything
 Name=Show Me Everything
-Path=
 StartupNotify=true
 Terminal=false
-TerminalOptions=
 Type=Application
 X-KDE-SubstituteUID=false
-X-KDE-Username=
 #QML GUI
+# SME_SIGNATURE=gr00t-user-706
