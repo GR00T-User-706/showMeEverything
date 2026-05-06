@@ -5,6 +5,7 @@ from tkinter import scrolledtext
 import subprocess
 import threading
 import shutil
+import os
 
 
 SEARCH_SCRIPT = shutil.which("showMeEverything")
@@ -24,6 +25,7 @@ FLAG_GROUPS = {
     "installed": ["--installed", "-i", "installed", "i"],
     "manpages": ["--manpages", "--man", "-M", "manpages", "man", "M"],
     "modules": ["--modules", "-m", "modules", "m"],
+    "not-installed": ["--not-installed", "-n", "not-installed", "n"]
     "process": ["--process", "-x", "process", "x"],
     "packages": ["--packages", "-p", "--pkg", "packages", "pkg", "p"],
     "path": ["--path", "-P", "path", "P"],
@@ -47,6 +49,7 @@ def append_text(line):
     output_text.configure(state="normal")
     output_text.insert(tk.END, line)
     output_text.see(tk.END)
+    output_text.update_idletasks()
     output_text.configure(state="disabled")
 
 
@@ -66,8 +69,15 @@ def run_search_thread(arg):
     if search:
         cmd.append(search)
     try:
+        env = os.environ.copy()
+        env["SMECLI_GUI_MODE"] = "1"
+
         process = subprocess.Popen(
-            cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
+            cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            env=env
         )
         for line in process.stdout:
             append_text(line)
@@ -114,6 +124,7 @@ help_button = tk.Button(root, text="Help", command=run_help)
 help_button.pack(padx=5, pady=5)
 
 output_text = scrolledtext.ScrolledText(root, width=100, height=30)
-output_text.pack(padx=5, pady=5)
+output_text.pack(padx=5, pady=5, fill=tk.BOTH, expand=True)
+output_text.configure(state="disabled")
 
 root.mainloop()

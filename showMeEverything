@@ -1,5 +1,6 @@
 #!/usr/bin/env sh
 # SME_SIGNATURE=gr00t-user-706
+# Version v1.0.1
 # GLOBAL CONFIG DEFAULT STATE
 VERSION="v1.0.1"
 PIPE_MODE=0 # 0=off 1=on for MACHINE parse-able output formatting
@@ -586,6 +587,9 @@ search() {
     local has_all=false
     local has_system=false
     local original_args=("$@")
+    if [ "${SMECLI_GUI_MODE:-0}" -eq 1 ]; then
+        PIPE_MODE=1
+    fi
 
     while [ $# -gt 0 ]; do
         case "$1" in

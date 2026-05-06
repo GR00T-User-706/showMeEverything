@@ -12,5 +12,5 @@ StartupNotify=true
 Terminal=false
 Type=Application
 X-KDE-SubstituteUID=false
-#QML GUI
 # SME_SIGNATURE=gr00t-user-706
+# Version v1.0.1
