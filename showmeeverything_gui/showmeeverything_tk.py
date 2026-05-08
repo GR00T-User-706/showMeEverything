@@ -25,7 +25,7 @@ FLAG_GROUPS = {
     "installed": ["--installed", "-i", "installed", "i"],
     "manpages": ["--manpages", "--man", "-M", "manpages", "man", "M"],
     "modules": ["--modules", "-m", "modules", "m"],
-    "not-installed": ["--not-installed", "-n", "not-installed", "n"]
+    "not-installed": ["--not-installed", "-n", "not-installed", "n"],
     "process": ["--process", "-x", "process", "x"],
     "packages": ["--packages", "-p", "--pkg", "packages", "pkg", "p"],
     "path": ["--path", "-P", "path", "P"],

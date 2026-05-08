@@ -1,13 +1,14 @@
-# showMeEverything
+#  <center> **showMeEverything**
 
-## A full systemwide probe for Linux distros. A little more useful than tree /.
+## <center> A full systemwide probe for Linux distros. A little more useful than tree /.
 
 ***
 
 
 *"Once I wanted to type search \<STRING> and have the system show me everything."*
->
+> 
 > **This** is that tool.
+
 ---
 ## Repository Layout
 ```
@@ -35,6 +36,7 @@ showMeEverything
 │   │   └── showMeEverything.png
 │   └── resources.qrc
 ```
+# <CENTER> For Detailed Documentation go to <br/>[smecli wiki](https://github.com/GR00T-User-706/showMeEverything.wiki.git)
 
 ---
 ## What it does
@@ -98,6 +100,7 @@ sudo ./install
 >-- Flags can overlap and will stack behavior for the time being i recommend not stacking all flags with anything other then --pipe and or --less
 >-- the search <STRING> accepts the same formatting as grep to my knowledge like "dat|a|pa|rts"
 >-- Im still finding the full usage of this tool 
+# <CENTER> **WARNING:** <br/> **UNLESS YOU KNOW EXACTLY WHAT UR DOING <BR/>AND ARE WILLIING TO ACCEPT THE CONSEQUENCES<BR/> NEVER PIPE THIS TOOL INTO CHOWN, CHMOD, OR RM -RF <BR/>THE OUTCOME COULD BE FATAL TO YOUR ENTIRE SYSTEM <BR/>THIS IS YOUR ONLY WARNING** 
 
 
 ### CLI:
@@ -109,9 +112,8 @@ sudo ./install
 >smecli --packages bash      # package manager aware package search
 >smecli --help               # shows all options
 >smecli --pipe --home ollama # --pipe = machine parseable formatting on the data stream to stdout
-#You can use this tool with command substitution and get some interesting outcomes
+#### You can use this tool with command substitution and get some interesting outcomes
 >nano "$(smecli --pipe --home "showmeeverything|ollama")"
-
 >```
 
 ### GUI:

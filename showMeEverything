@@ -1,34 +1,55 @@
-#!/usr/bin/env sh
+#!/usr/bin/env zsh
 # SME_SIGNATURE=gr00t-user-706
 # Version v1.0.1
+SME_VERSION="v1.0.1"
 # GLOBAL CONFIG DEFAULT STATE
-VERSION="v1.0.1"
+# VALID STATES:
+# PIPE_MODE=0 COLOR_MODE=1  -> human readable ANSI output
+# PIPE_MODE=1 COLOR_MODE=0  -> machine parseable output
+# any other combination is invalid and fatal
 PIPE_MODE=0 # 0=off 1=on for MACHINE parse-able output formatting
-HEADER=1 # 1=Active
-FOOTER=1 # 0=Inactive
+COLOR_MODE=1
+HEADER=1
+FOOTER=1
 REGEX=1
-#header and footer functions for global use
-config_output() {
-    if [ "$PIPE_MODE" -eq 0 ]; then
-        GREP_OPTS=(-i -E --color=always)
-        HEADER=1
-        FOOTER=1
+if [ -n "${ZSH_VERSION:-}" ]; then
+    current_shell="zsh"
+elif [ -n "${BASH_VERSION:-}" ]; then
+    current_shell="bash"
+else
+    current_shell="$(basename "$SHELL")"
+    echo "FATAL:  Detecting an Un-Supported Shell: $current_shell"
+    echo "BASH or ZSH Are the only supported Shells"
+    echo "Exiting with Exit Code 1"; sleep 5
+    exit 1
+fi
+# setting for human readable / machine parseable
+sme_grep() {
+    local gropts=(-i)
+    [ "$REGEX" = 1 ] && gropts+=(-E)
+    [ "$REGEX" = 0 ] &&
+    # Validate PIPE_MODE
+    # Validate GREP_OPTS is the inverse of PIPE_MODE
+    if [ "$PIPE_MODE" = 0 ] && [ "$COLOR_MODE" = 1 ] ; then
+        grep ${gropts[@]} --color=always -- "$@"
+    elif  [ "$PIPE_MODE" = 1 ] && [ "$COLOR_MODE" = 0 ]; then
+        grep ${gropts[@]} --color=never -- "$@"
     else
-        GREP_OPTS=(-i -E --color=never)
-        HEADER=0
-        FOOTER=0
+        exit 2
     fi
 }
 
+
+#header and footer functions for global use
 header0() {
-    [ "$HEADER" -eq "0" ] && return
+    [ "$PIPE_MODE" -eq 1 ] && return
     echo "#=========================================================#"
     echo "$1"
     echo "$2"
     echo "#=========================================================#"
 }
 footer() {
-    [ "$FOOTER" -eq "0" ] && return
+    [ "$PIPE_MODE" -eq 1 ] && return
     local TODAY="$(date +%c)"
     local info="$(echo "${TODAY} ${SHELL} ${USER} ${HOST}")"
     header0 "$info"
@@ -39,13 +60,6 @@ EXCLUDES=(
     -not -path "*/.cache/*"
 )
 
-if [ -n "${ZSH_VERSION:-}" ]; then
-    current_shell="zsh"
-elif [ -n "${BASH_VERSION:-}" ]; then
-    current_shell="bash"
-else
-    current_shell="$(basename "$SHELL")"
-fi
 
 [ "$current_shell" = "bash" ] && shopt -s expand_aliases 2>/dev/null
 #==========================================#
@@ -61,9 +75,9 @@ search_path() {
         [ -d "$dir" ] || continue
 
         if [ "$REGEX" -eq 1 ]; then
-            find "$dir" "${EXCLUDES[@]}" -type f 2>/dev/null | grep "${GREP_OPTS[@]}" -- "$1"
+            find "$dir" "${EXCLUDES[@]}" -type f 2>/dev/null | sme_grep
         else
-            find "$dir" "${EXCLUDES[@]}" -iname "*$1*" 2>/dev/null
+            find "$dir" "${EXCLUDES[@]}" -iname "*$1*" 2>/dev/null | sme_grep
         fi
     done
     unset IFS
@@ -73,9 +87,9 @@ search_loaded_commands() {
     header0 "$info"
 
     if [ "$current_shell" = "zsh" ]; then
-        eval 'print -rl -- ${(k)commands}' | grep "${GREP_OPTS[@]}" -- "$1"
+        eval 'print -rl -- ${(k)commands}' | sme_grep
     elif [ "$current_shell" = "bash" ]; then
-        compgen -c | grep "${GREP_OPTS[@]}" -- "$1"
+        compgen -c | sme_grep
     fi
 }
 
@@ -84,9 +98,9 @@ search_builtins() {
     header0 "$info"
 
     if [ "$current_shell" = "zsh" ]; then
-        eval 'print -rl -- ${(k)builtins}' | grep "${GREP_OPTS[@]}" -- "$1"
+        eval 'print -rl -- ${(k)builtins}' | sme_grep
     elif [ "$current_shell" = "bash" ]; then
-        compgen -b | grep "${GREP_OPTS[@]}" -- "$1"
+        compgen -b | sme_grep
     fi
 }
 
@@ -95,16 +109,16 @@ search_shell_functions() {
     header0 "$info"
 
     if [ "$current_shell" = "zsh" ]; then
-        eval 'print -rl -- ${(k)functions}' | grep "${GREP_OPTS[@]}" -- "$1"
+        eval 'print -rl -- ${(k)functions}' | sme_grep
     elif [ "$current_shell" = "bash" ]; then
-        compgen -A function | grep "${GREP_OPTS[@]}" -- "$1"
+        compgen -A function | sme_grep
     fi
 }
 
 search_aliases() {
     local info="Searching shell aliases for $1..."
     header0 "$info"
-    alias | grep "${GREP_OPTS[@]}" -- "$1"
+    alias | sme_grep
 }
 
 {
@@ -136,14 +150,14 @@ search_aliases() {
             pacman_full_repo_search() {
                 local info="Searching Pacman repo for $1..."
                 header0 "$info"
-                pacman -Sl 2>/dev/null | grep "${GREP_OPTS[@]}" -- "$1"
+                pacman -Sl 2>/dev/null | sme_grep
             }
 
             # -------- installed ---------- #
             pacman_installed_packages_search() {
                 local info="Searching installed Pacman packages for $1..."
                 header0 "$info"
-                pacman -Q 2>/dev/null | grep "${GREP_OPTS[@]}" -- "$1"
+                pacman -Q 2>/dev/null | sme_grep
             }
 
             #--------not installed----------#
@@ -152,7 +166,7 @@ search_aliases() {
                 local info="Searching Pacman for packages not installed: $1..."
                 header0 "$info"
                 comm -23 \
-                    <(pacman -Slq 2>/dev/null | grep "${GREP_OPTS[@]}" -- "$1" | sort -u) \
+                    <(pacman -Slq 2>/dev/null | sme_grep | sort -u) \
                     <(pacman -Qq 2>/dev/null | sort -u)
             )
 
@@ -177,7 +191,7 @@ search_aliases() {
                 if [ -z "$1" ]; then
                     apt list 2>/dev/null
                 else
-                    apt list 2>/dev/null | grep "${GREP_OPTS[@]}" -- "$1"
+                    apt list 2>/dev/null | sme_grep
                 fi
             }
 
@@ -185,7 +199,7 @@ search_aliases() {
             apt_installed_packages_search() {
                 local info="Searching installed APT packages for $1..."
                 header0 "$info"
-                dpkg-query -W 2>/dev/null | grep "${GREP_OPTS[@]}" -- "$1"
+                dpkg-query -W 2>/dev/null | sme_grep
             }
 
             #--------not installed----------#
@@ -193,7 +207,7 @@ search_aliases() {
                 local info="Searching APT for packages not installed: $1..."
                 header0 "$info"
                 comm -23 \
-                    <(apt-cache pkgnames 2>/dev/null | grep "${GREP_OPTS[@]}" -- "$1" | sort -u) \
+                    <(apt-cache pkgnames 2>/dev/null | sme_grep | sort -u) \
                     <(dpkg-query -W -f='${binary:Package}\n' 2>/dev/null | sort -u)
             }
 
@@ -215,14 +229,14 @@ search_aliases() {
             dnf_full_repo_search() {
                 local info="Searching DNF repo for $1..."
                 header0 "$info"
-                dnf list available 2>/dev/null | grep "${GREP_OPTS[@]}" -- "$1"
+                dnf list available 2>/dev/null | sme_grep
             }
 
             # -------- installed ---------- #
             dnf_installed_packages_search() {
                 local info="Searching installed DNF packages for $1..."
                 header0 "$info"
-                dnf list installed 2>/dev/null | grep "${GREP_OPTS[@]}" -- "$1"
+                dnf list installed 2>/dev/null | sme_grep
             }
 
             #--------not installed----------#
@@ -230,7 +244,7 @@ search_aliases() {
                 local info="Searching DNF for packages not installed: $1..."
                 header0 "$info"
                 comm -23 \
-                    <(dnf list available 2>/dev/null | awk 'NR > 1 {print $1}' | sed 's/\.[^.[:space:]]*$//' | grep "${GREP_OPTS[@]}" -- "$1" | sort -u) \
+                    <(dnf list available 2>/dev/null | awk 'NR > 1 {print $1}' | sed 's/\.[^.[:space:]]*$//' | sme_grep | sort -u) \
                     <(dnf list installed 2>/dev/null | awk 'NR > 1 {print $1}' | sed 's/\.[^.[:space:]]*$//' | sort -u)
             }
 
@@ -252,14 +266,14 @@ search_aliases() {
             zypper_full_repo_search() {
                 local info="Searching Zypper repo for $1..."
                 header0 "$info"
-                zypper search 2>/dev/null | grep "${GREP_OPTS[@]}" -- "$1"
+                zypper search 2>/dev/null | sme_grep
             }
 
             # -------- installed ---------- #
             zypper_installed_packages_search() {
                 local info="Searching installed Zypper packages for $1..."
                 header0 "$info"
-                rpm -qa --qf '%{NAME} %{VERSION}-%{RELEASE}\n' 2>/dev/null | grep "${GREP_OPTS[@]}" -- "$1"
+                rpm -qa --qf '%{NAME} %{VERSION}-%{RELEASE}\n' 2>/dev/null | sme_grep
             }
 
             #--------not installed----------#
@@ -267,7 +281,7 @@ search_aliases() {
                 local info="Searching Zypper for packages not installed: $1..."
                 header0 "$info"
                 comm -23 \
-                    <(zypper search 2>/dev/null | awk 'NR > 4 {print $3}' | grep "${GREP_OPTS[@]}" -- "$1" | sort -u) \
+                    <(zypper search 2>/dev/null | awk 'NR > 4 {print $3}' | sme_grep | sort -u) \
                     <(rpm -qa --qf '%{NAME}\n' 2>/dev/null | sort -u)
             }
 
@@ -275,7 +289,7 @@ search_aliases() {
             zypper_files_db_search() {
                 local info="Searching Zypper/RPM file ownership for $1..."
                 header0 "$info"
-                rpm -qal 2>/dev/null | grep "${GREP_OPTS[@]}" -- "$1"
+                rpm -qal 2>/dev/null | sme_grep
             }
         }
     }
@@ -289,14 +303,14 @@ search_aliases() {
             apk_full_repo_search() {
                 local info="Searching APK repo for $1..."
                 header0 "$info"
-                apk search 2>/dev/null | grep "${GREP_OPTS[@]}" -- "$1"
+                apk search 2>/dev/null | sme_grep
             }
 
             # -------- installed ---------- #
             apk_installed_packages_search() {
                 local info="Searching installed APK packages for $1..."
                 header0 "$info"
-                apk info 2>/dev/null | grep "${GREP_OPTS[@]}" -- "$1"
+                apk info 2>/dev/null | sme_grep
             }
 
             #--------not installed----------#
@@ -304,7 +318,7 @@ search_aliases() {
                 local info="Searching APK for packages not installed: $1..."
                 header0 "$info"
                 comm -23 \
-                    <(apk search 2>/dev/null | sed 's/-[0-9].*$//' | grep "${GREP_OPTS[@]}" -- "$1" | sort -u) \
+                    <(apk search 2>/dev/null | sed 's/-[0-9].*$//' | sme_grep | sort -u) \
                     <(apk info 2>/dev/null | sort -u)
             }
 
@@ -312,7 +326,7 @@ search_aliases() {
             apk_files_db_search() {
                 local info="Searching APK file ownership for $1..."
                 header0 "$info"
-                apk info -L 2>/dev/null | grep "${GREP_OPTS[@]}" -- "$1"
+                apk info -L 2>/dev/null | sme_grep
             }
         }
     }
@@ -375,7 +389,7 @@ search_manpages() {
     header0 "$info"
 
     if command -v apropos >/dev/null 2>&1; then
-        apropos -w "$wcs" | grep "${GREP_OPTS[@]}" -- "$1"
+        apropos -w "$wcs" | sme_grep
     fi
 }
 
@@ -384,14 +398,14 @@ search_systemd_units() {
     header0 "$info"
 
     if command -v systemctl >/dev/null 2>&1; then
-        systemctl list-unit-files 2>/dev/null | grep "${GREP_OPTS[@]}" -- "$1"
+        systemctl list-unit-files 2>/dev/null | sme_grep
     fi
 }
 
 search_running_processes() {
     local info="Searching running processes for $1..."
     header0 "$info"
-    ps aux 2>/dev/null | grep "${GREP_OPTS[@]}" -- "$1"
+    ps aux 2>/dev/null | sme_grep
 }
 
 loaded_kernel_modules() {
@@ -399,7 +413,7 @@ loaded_kernel_modules() {
     header0 "$info"
 
     if command -v lsmod >/dev/null 2>&1; then
-        lsmod 2>/dev/null | grep "${GREP_OPTS[@]}" -- "$1"
+        lsmod 2>/dev/null | sme_grep
     fi
 }
 
@@ -415,7 +429,7 @@ search_home_directory() {
             find "$HOME" -type d \( $(printf "! -path %s " "$dotfiles" "$exclude_dirs") \) -print 2>/dev/null
         else
             if [ "$REGEX" -eq 1 ]; then
-                find "$HOME" "${EXCLUDES[@]}" -type f 2>/dev/null | grep "${GREP_OPTS[@]}" -- "$1"
+                find "$HOME" "${EXCLUDES[@]}" -type f 2>/dev/null | sme_grep
             else
                 find "$HOME" -iname "*$1*" "${EXCLUDES[@]}" 2>/dev/null
             fi
@@ -425,7 +439,7 @@ search_home_directory() {
             find "$HOME" -type d \( $(printf "! -path %s " "$exclude_dirs") \) -print 2>/dev/null
         else
             if [ "$REGEX" -eq 1 ]; then
-                find "$HOME" "${EXCLUDES[@]}" -type f 2>/dev/null | grep "${GREP_OPTS[@]}" -- "$1"
+                find "$HOME" "${EXCLUDES[@]}" -type f 2>/dev/null | sme_grep
             else
                 find "$HOME" -iname "*$1*" "${EXCLUDES[@]}" 2>/dev/null
             fi
@@ -442,7 +456,7 @@ search_system_dirs() {
         [ -d "$d" ] || continue
 
         if [ "$REGEX" -eq 1 ]; then
-            find "$d" -type f -not -path "$HOME/.cache/*" 2>/dev/null | grep "${GREP_OPTS[@]}" -- "$1"
+            find "$d" -type f -not -path "$HOME/.cache/*" 2>/dev/null | sme_grep
         else
             find "$d" -iname "*$1*" -not -path "$HOME/.cache/*" 2>/dev/null
         fi
@@ -595,9 +609,14 @@ search() {
         case "$1" in
             --excludeDotFiles | --nodot) exclude_dotfiles=true ;;
             --less) use_less=true ;;
-            --pipe | pipe ) PIPE_MODE=1 ;;
+            --pipe | pipe )
+                PIPE_MODE=1
+                COLOR_MODE=0
+                HEADER=0
+                FOOTER=0
+            ;;
             --glob|glob) REGEX=0 ;;
-            -v|--version) echo "$VERSION" ;;
+            -v|--version) echo "\$SME_VERSION: #$SME_VERSION" \  echo "\$SME_SIGNATURE: $SME_SIGNATURE" \ ;;
 
 
             --ALL | ALL | -A | A )
