@@ -7,6 +7,13 @@ SME_VERSION="v1.0.1"
 # PIPE_MODE=0 COLOR_MODE=1  -> human readable ANSI output
 # PIPE_MODE=1 COLOR_MODE=0  -> machine parseable output
 # any other combination is invalid and fatal
+#==========================================================================#
+# PROJECT_ORIGIN="serach()"
+#search() {
+#  { echo $path | tr ' ' '\n' | xargs -I{} ls {} | sort -u | grep "$1" } && { print -rl -- ${(k)commands} | grep "$1" }
+#}
+#==========================================================================#
+
 PIPE_MODE=0 # 0=off 1=on for MACHINE parse-able output formatting
 COLOR_MODE=1
 HEADER=1
