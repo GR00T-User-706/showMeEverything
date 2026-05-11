@@ -57,10 +57,10 @@ check_root() {
 # --- Header ---
 show_header() {
     echo -e "${GREEN}Show Me Everything Installer${NC}"
-    echo "----------------------------------------"
-    echo "Core: CLI (${RED}required${NC})"
-    echo "${YELLOW}Optional: Python/Tk GUI, Qt GUI${NC}"
-    echo ""
+    echo -e "----------------------------------------"
+    echo -e "Core: CLI (${RED}required${NC})"
+    echo -e "${YELLOW}Optional: Python/Tk GUI, Qt GUI${NC}"
+    echo -e ""
 }
 
 # --- Determine install mode (GOLDEN GATE) ---
@@ -68,10 +68,10 @@ determine_install_mode() {
     if [ ! -d "$GUI_DIR" ]; then
         echo -e "${RED}FATAL: GUI source directory missing: $GUI_DIR${NC}"
         echo -e "${RED}This install is incomplete or not a full repository clone.${NC}"
-        echo ""
+        echo -e ""
         echo -e "${YELLOW}Only the CLI can be installed at this time.${NC}"
         echo -e "${YELLOW}The GUI components (Qt + Tk) and desktop entries will be skipped.${NC}"
-        echo ""
+        echo -e ""
 
         read -rp "Continue with CLI-only installation? [y/N]: " CONTINUE_CLI_ONLY
 
@@ -81,7 +81,7 @@ determine_install_mode() {
                 INSTALL_MODE="cli_only"
                 ;;
             *)
-                echo "${RED}Installation aborted."
+                echo -e "${RED}Installation aborted.${NC}"
                 exit 0
                 ;;
         esac
@@ -128,7 +128,7 @@ check_existing_installation() {
             echo -e "${YELLOW}sha256sum not available – skipping hash comparison.${NC}"
         fi
 
-        echo ""
+        echo -e ""
 
         if [ $IS_OURS -eq 1 ] && [ $SAME_HASH -eq 1 ]; then
             read -rp "Same version already installed. Reinstall anyway? [y/N]: " CONFIRM
@@ -140,10 +140,10 @@ check_existing_installation() {
 
         case "$CONFIRM" in
             [yY]|[yY][eE][sS])
-                echo "${GREEN}Continuing installation..."
+                echo -e "${GREEN}Continuing installation...${NC}"
                 ;;
             *)
-                echo "Installation ${RED}aborted."
+                echo -e "Installation ${RED}aborted${NC}."
                 exit 0
                 ;;
         esac
@@ -174,8 +174,6 @@ install_cli() {
 
     install -m 555 "$SMECLI_SRC" "$SMECLI_BIN"
     ln -sf "$SMECLI_BIN" "$SMECLI"
-
-    echo -e "${GREEN}CLI installed successfully.${NC}"
 }
 
 # --- Check and prep Python GUI ---
@@ -187,7 +185,7 @@ check_python_gui() {
     if command -v python3 >/dev/null 2>&1; then
         if python3 -c "import tkinter" >/dev/null 2>&1; then
             PYTHON_TK_OK=1
-            echo "${GREEN}Python + tkinter detected."
+            echo -e "${GREEN}Python + tkinter detected."
         else
             echo -e "${YELLOW}python3 found but tkinter missing.${NC}"
         fi
@@ -225,7 +223,7 @@ check_qt_gui() {
 # --- Build Qt GUI ---
 build_qt_gui() {
     if [ "$QT_DEPS_OK" -eq 1 ]; then
-        echo "Attempting Qt build..."
+        echo -e "Attempting Qt build..."
 
         cd "$SCRIPT_DIR/showmeeverything_gui"
 
@@ -247,7 +245,7 @@ build_qt_gui() {
 # --- Install Qt GUI ---
 install_qt_gui() {
     if [ "$QT_BUILD_OK" -eq 1 ] && [ -f "$SMEGUI_SRC" ]; then
-        echo "${GREEN}Installing Qt GUI...${NC}"
+        echo -e "${GREEN}Installing Qt GUI...${NC}"
         install -m 555 "$SMEGUI_SRC" "$SMEGUI_BIN_NEW"
         ln -sf "$SMEGUI_BIN_NEW" "$SMEGUI"
         QT_INSTALLED=1
@@ -303,48 +301,49 @@ set_ownership() {
 
 # --- Show summary based on install mode ---
 show_summary() {
-    echo ""
-    echo "========== INSTALL SUMMARY =========="
+    clear
+    echo -e ""
+    echo -e "========== INSTALL SUMMARY =========="
 
     case "$INSTALL_MODE" in
         cli_only)
-            echo "Mode: ${YELLOW}CLI-ONLY${NC} (repository incomplete)"
-            echo "CLI: ${GREEN}INSTALLED ${NC} ✓"
-            echo "Python GUI: ${RED}SKIPPED${NC} (missing GUI directory)"
-            echo "Qt GUI: ${RED}SKIPPED ${NC} (missing GUI directory)"
-            echo ""
+            echo -e "Mode: ${YELLOW}CLI-ONLY${NC} (repository incomplete)"
+            echo -e "CLI: ${GREEN}INSTALLED ${NC} ✓"
+            echo -e "Python GUI: ${RED}SKIPPED${NC} (missing GUI directory)"
+            echo -e "Qt GUI: ${RED}SKIPPED ${NC} (missing GUI directory)"
+            echo -e ""
             echo -e "${YELLOW}What you can do:${NC}"
-            echo "  • CLI is fully functional at 'smecli' or 'showMeEverything'"
-            echo "  • To get GUI components, clone the complete repository with:"
-            echo "    git clone <full-repo-url> (includes showmeeverything_gui/)"
-            echo "  • Then re-run 'sudo ./install' to add GUI features"
+            echo -e "  • CLI is fully functional at 'smecli' or 'showMeEverything'"
+            echo -e "  • To get GUI components, clone the complete repository with:"
+            echo -e "    git clone <full-repo-url> (includes showmeeverything_gui/)"
+            echo -e "  • Then re-run 'sudo ./install' to add GUI features"
             ;;
         full)
-            echo "Mode: ${GREEN}FULL${NC} (complete repository)"
-            echo "CLI: ${GREEN}INSTALLED ${NC}✓"
+            echo -e "Mode: ${GREEN}FULL${NC} (complete repository)"
+            echo -e "CLI: ${GREEN}INSTALLED ${NC}✓"
 
             if [ "$PYTHON_INSTALLED" -eq 1 ]; then
-                echo "Python GUI: ${GREEN}INSTALLED${NC} ✓"
+                echo -e "Python GUI: ${GREEN}INSTALLED${NC} ✓"
             else
-                echo "Python GUI: ${RED}SKIPPED${NC} ✗"
-                echo "  → Missing: python3 or tkinter"
-                echo "  → Fix: sudo apt install python3-tk (Debian/Ubuntu)"
-                echo "      or sudo dnf install python3-tkinter (Fedora)"
+                echo -e "Python GUI: ${RED}SKIPPED${NC} ✗"
+                echo -e "  → Missing: python3 or tkinter"
+                echo -e "  → Fix: sudo apt install python3-tk (Debian/Ubuntu)"
+                echo -e "      or sudo dnf install python3-tkinter (Fedora)"
             fi
 
             if [ "$QT_INSTALLED" -eq 1 ]; then
-                echo "Qt GUI: ${GREEN}INSTALLED${NC} ✓"
+                echo -e "Qt GUI: ${GREEN}INSTALLED${NC} ✓"
             else
-                echo "Qt GUI: ${RED}SKIPPED${NC} ✗"
-                echo "  → Missing: qmake6 or make"
-                echo "  → Fix: sudo apt install qt6-base-dev make (Debian/Ubuntu)"
-                echo "      or sudo dnf install qt6-qtbase-devel make (Fedora)"
+                echo -e "Qt GUI: ${RED}SKIPPED${NC} ✗"
+                echo -e "  → Missing: qmake6 or make"
+                echo -e "  → Fix: sudo apt install qt6-base-dev make (Debian/Ubuntu)"
+                echo -e "      or sudo dnf install qt6-qtbase-devel make (Fedora)"
             fi
             ;;
     esac
 
-    echo "===================================="
-    echo ""
+    echo -e "===================================="
+    echo -e ""
     echo -e "${GREEN}Installation complete!${NC}"
 
     if [ "$INSTALL_MODE" = "cli_only" ]; then
@@ -354,6 +353,7 @@ show_summary() {
 
 # --- Main execution flow using case statement ---
 main() {
+    clear
     # Setup phase (always runs)
     detect_shell
     define_paths
