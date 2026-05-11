@@ -722,7 +722,7 @@ search() {
             esac
         done
     fi
-    config_output
+
 
     [ ${#actions[@]} -eq 0 ] && {
         echo "$0: No search flags given"
