@@ -1,7 +1,6 @@
 #!/usr/bin/env zsh
-# SME_SIGNATURE=gr00t-user-706
-# Version v1.0.1
-SME_VERSION="v1.1.1"
+readonly SME_SIGNATURE="gr00t-user-706"
+readonly SME_VERSION="v2.1.1"
 # GLOBAL CONFIG DEFAULT STATE
 # VALID STATES:
 # PIPE_MODE=0 COLOR_MODE=1  -> human readable ANSI output
@@ -20,6 +19,7 @@ BLU="\e[34m"
 NC="\e[0m"
 
 PIPE_MODE=0 # 0=off 1=on for MACHINE parse-able output formatting
+
 COLOR_MODE=1
 HEADER=1
 FOOTER=1
@@ -182,6 +182,7 @@ search_aliases() {
             #--------not installed----------#
             pacman_search_not_installed() (
                 local PIPE_MODE=1
+                local COLOR_MODE=0
                 local info="Searching Pacman for packages not installed: $1..."
                 header0 "$info"
                 comm -23 \
@@ -479,7 +480,7 @@ search_usr() {
     header0 "$info"
 
     [ -d /usr ] || return
-    find /usr -iname "*$1*" "${EXCLUDES[@]}" 2>/dev/null
+    find /usr -iname "*$1*" "${EXCLUDES[@]}" 2>/dev/null | sme_grep "$1"
 }
 
 search_etc() {
@@ -487,7 +488,7 @@ search_etc() {
     header0 "$info"
 
     [ -d /etc ] || return
-    find /etc -iname "*$1*" "${EXCLUDES[@]}" 2>/dev/null
+    find /etc -iname "*$1*" "${EXCLUDES[@]}" 2>/dev/null | sme_grep "$1"
 }
 
 search_sys() {
@@ -495,7 +496,7 @@ search_sys() {
     header0 "$info"
 
     [ -d /sys ] || return
-    find /sys -iname "*$1*" "${EXCLUDES[@]}" 2>/dev/null
+    find /sys -iname "*$1*" "${EXCLUDES[@]}" 2>/dev/null | sme_grep "$1"
 }
 
 search_var() {
@@ -503,7 +504,7 @@ search_var() {
     header0 "$info"
 
     [ -d /var ] || return
-    find /var -iname "*$1*" "${EXCLUDES[@]}" 2>/dev/null
+    find /var -iname "*$1*" "${EXCLUDES[@]}" 2>/dev/null | sme_grep "$1"
 }
 
 search_opt() {
@@ -511,37 +512,37 @@ search_opt() {
     header0 "$info"
 
     [ -d /opt ] || return
-    find /opt -iname "*$1*" "${EXCLUDES[@]}" 2>/dev/null
+    find /opt -iname "*$1*" "${EXCLUDES[@]}" 2>/dev/null | sme_grep "$1"
 }
 
 search_boot() {
     local info="Searching /boot for $1..."
     header0 "$info"
     [ -d /boot ] || return
-    find /boot -iname "*$1*" "${EXCLUDES[@]}" 2>/dev/null
+    find /boot -iname "*$1*" "${EXCLUDES[@]}" 2>/dev/null | sme_grep "$1"
 }
 
 search_lib() {
     local info="Searching /lib for $1..."
     header0 "$info"
     [ -d /lib ] || return
-    find /lib -iname "*$1*" "${EXCLUDES[@]}" 2>/dev/null
+    find /lib -iname "*$1*" "${EXCLUDES[@]}" 2>/dev/null | sme_grep "$1"
 }
 
 search_bin() {
     local info="Searching /bin for $1..."
     header0 "$info"
     [ -d /bin ] || return
-    find /bin -iname "*$1*" "${EXCLUDES[@]}" 2>/dev/null
+    find /bin -iname "*$1*" "${EXCLUDES[@]}" 2>/dev/null | sme_grep "$1"
 }
 
 search_sbin() {
     local info="Searching /sbin for $1..."
     header0 "$info"
     [ -d /sbin ] || return
-    find /sbin -iname "*$1*" "${EXCLUDES[@]}" 2>/dev/null
+    find /sbin -iname "*$1*" "${EXCLUDES[@]}" 2>/dev/null | sme_grep "$1"
 }
-help() {
+show_help() {
     echo -e "Author:Zenrich Shadowstep (aka GR00T-User-706)\n
 Contact:crypto_code_weaver_syndicate@proton.me\n
 Version:3.0\n
@@ -574,7 +575,7 @@ ran without a search parameter for older systems i recomend redirection or --les
 --etc | etc | -E | E <STRING>           search /etc configuration directory only \n
 --files | files | -F | F <STRING>       search package-managed file database for <STRING> \n
 --functions | functions | -f | f <STRING> search loaded shell functions for <STRING> \n
---help | help | -h | h                  print this help message \n
+--help | -h                  print this help message \n
 --home | home | -H | H <STRING>         search your \$HOME directory for <STRING> \n
 --installed | installed | -i | i <STRING> search installed packages for <STRING> \n
 --lib | lib | -L | L <STRING>           search /lib system libraries only \n
@@ -604,6 +605,8 @@ if you wish to pipe the output into less i recomend using the built in --less fl
 # }
 
 search() {
+    local -a search_terms=()
+    local stop_parse=false
     local pattern=""
     local -a actions=()
     local use_less=false
@@ -617,20 +620,37 @@ search() {
     fi
 
     while [ $# -gt 0 ]; do
+        if [ "$stop_parse" = true ]; then
+            search_terms+=("$1")
+            shift
+            continue
+        fi
+
+        if [ "$1" = "--" ]; then
+            stop_parse=true
+            shift
+            continue
+        fi
+
+
+
         case "$1" in
-            --excludeDotFiles | --nodot) exclude_dotfiles=true ;;
+           --excludeDotFiles|--nodot) EXCLUDE_DOTFILES=true ;;
             --less) use_less=true ;;
-            --pipe | pipe )
+            --pipe )
                 PIPE_MODE=1
                 COLOR_MODE=0
                 HEADER=0
                 FOOTER=0
             ;;
-            --glob|glob) REGEX=0 ;;
-            -v|--version) echo "\$SME_VERSION: #$SME_VERSION" \  echo "\$SME_SIGNATURE: $SME_SIGNATURE" \ ;;
+            --glob) REGEX=0 ;;
+            -v|--version)
+                echo "SME_VERSION: $SME_VERSION"
+                echo "SME_SIGNATURE: $SME_SIGNATURE$"
+                return 0
+            ;;
 
-
-            --ALL | ALL | -A | A )
+            --ALL | -A )
                 actions+=(
                     search_path
                     search_loaded_commands
@@ -648,9 +668,8 @@ search() {
                     search_home_directory
                     search_system_dirs
                 )
-                ;;
-
-            --all | all )
+            ;;
+            --all )
                 actions+=(
                     search_path
                     search_loaded_commands
@@ -665,36 +684,36 @@ search() {
                     search_packages_not_installed
                     search_home_directory
                 )
-                ;;
+            ;;
 
-            --aliases | aliases | -a | a) actions+=(search_aliases) ;;
-            --bin | bin ) actions+=(search_bin) ;;
-            --boot | boot | -B | B ) actions+=(search_boot) ;;
-            --builtins | builtins | -b | b) actions+=(search_builtins) ;;
-            --command | command | -c | c) actions+=(search_loaded_commands) ;;
-            --etc | etc | -E | E ) actions+=(search_etc) ;;
-            --files | files | -F | F ) actions+=(search_package_files_db) ;;
-            --functions | functions | -f | f ) actions+=(search_shell_functions) ;;
-            --home | home | -H | H ) actions+=(search_home_directory) ;;
-            --installed | installed | -i | i ) actions+=(search_installed_packages) ;;
-            --lib | lib | -L | L ) actions+=(search_lib) ;;
-            --manpages | manpages | --man | man | -M | M ) actions+=(search_manpages) ;;
-            --modules | modules | -m | m) actions+=(loaded_kernel_modules) ;;
-            --not-installed | not-installed | -n | n ) actions+=(search_packages_not_installed) ;;
-            --process | process | -x | x ) actions+=(search_running_processes) ;;
-            --packages | packages | -p | p | --pkg | pkg) actions+=(search_package_repo) ;;
-            --path | path | -P | P ) actions+=(search_path) ;;
-            --sbin | sbin ) actions+=(search_sbin) ;;
-            --systemd | systemd | -s | s ) actions+=(search_systemd_units) ;;
-            --system | system | -R | R ) actions+=(search_system_dirs) ;;
-            --usr | usr | -U | U ) actions+=(search_usr) ;;
-            --var | var | -V | V ) actions+=(search_var) ;;
-            --opt | opt | -O | O ) actions+=(search_opt) ;;
+            --aliases  | -a ) actions+=(search_aliases) ;;
+            --bin ) actions+=(search_bin) ;;
+            --boot | -B ) actions+=(search_boot) ;;
+            --builtins | -b ) actions+=(search_builtins) ;;
+            --command |  -c) actions+=(search_loaded_commands) ;;
+            --etc  | -E ) actions+=(search_etc) ;;
+            --files | -F  ) actions+=(search_package_files_db) ;;
+            --functions | -f ) actions+=(search_shell_functions) ;;
+            --home | -H ) actions+=(search_home_directory) ;;
+            --installed | -i  ) actions+=(search_installed_packages) ;;
+            --lib | -L ) actions+=(search_lib) ;;
+            --manpages | --man | -M ) actions+=(search_manpages) ;;
+            --modules | -m ) actions+=(loaded_kernel_modules) ;;
+            --not-installed | -n ) actions+=(search_packages_not_installed) ;;
+            --process | -x ) actions+=(search_running_processes) ;;
+            --packages | -p | --pkg ) actions+=(search_package_repo) ;;
+            --path | -P  ) actions+=(search_path) ;;
+            --sbin  ) actions+=(search_sbin) ;;
+            --systemd | -s ) actions+=(search_systemd_units) ;;
+            --system | -R ) actions+=(search_system_dirs) ;;
+            --usr | -U ) actions+=(search_usr) ;;
+            --var | -V ) actions+=(search_var) ;;
+            --opt |  -O ) actions+=(search_opt) ;;
 
-            --help | -h | help | h ) help; return ;;
+            --help | -h ) show_help; return ;;
             *)
-                pattern="$1"
-                ;;
+                search_terms+=("$1")
+            ;;
         esac
         shift
     done
@@ -710,7 +729,7 @@ search() {
        { [ "$has_ALL" = true ] && [ "$has_system" = true ]; } || \
        { [  "$has_all" = true ] && [ "$has_system" = true ]; }; then
         echo "WARNING: conflicting flags detected: ALL|all|system are mutually exclusive."
-        echo "$0: For more info try [$0 help]: returning. with exit code 1"
+        echo "$0: For more info try [$0 --help]: returning. with exit code 1"
         return 1
     fi
     if [ "$has_ALL" = true ] || [ "$has_all" = true ]; then
@@ -730,10 +749,10 @@ search() {
 
     [ ${#actions[@]} -eq 0 ] && {
         echo "$0: No search flags given"
-        echo "$0: for more information try [$0 help]"
+        echo "$0: for more information try [$0 --help]"
         return 1
     }
-
+    pattern="${search_terms[*]}"
     if [ "$use_less" = true ]; then
         {
             for fn in "${actions[@]}"; do
