@@ -2,6 +2,7 @@
 #include <QDebug>
 #include <QUrl>
 #include <QTimer>
+#include <QProcessEnvironment>
 // SME_SIGNATURE=gr00t-user-706
 SearchBackend::SearchBackend(QObject* parent)
     : QObject(parent)
@@ -68,6 +69,10 @@ void SearchBackend::runSearch(const QString& args)
     }
 
     m_process = new QProcess(this);
+    QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
+    env.insert("SMECLI_GUI_MODE", "1");
+    m_process->setProcessEnvironment(env);
+    
     m_process->setProgram("/usr/local/bin/showMeEverything");
     m_process->setArguments(argList);
 

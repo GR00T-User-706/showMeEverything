@@ -13,36 +13,36 @@ if not SEARCH_SCRIPT:
     SEARCH_SCRIPT = "/usr/local/bin/showMeEverything"  # fallback
 
 FLAG_GROUPS = {
-    "ALL": ["--ALL", "-A", "ALL", "A"],
-    "all": ["--all", "all"],
-    "aliases": ["--aliases", "-a", "aliases", "a"],
-    "builtins": ["--builtins", "-b", "builtins", "b"],
-    "command": ["--command", "-c", "command", "c"],
-    "files": ["--files", "-F", "files", "F"],
-    "functions": ["--functions", "-f", "functions", "f"],
-    "help": ["--help", "-h", "help", "h"],
-    "home": ["--home", "-H", "home", "H"],
-    "installed": ["--installed", "-i", "installed", "i"],
-    "manpages": ["--manpages", "--man", "-M", "manpages", "man", "M"],
-    "modules": ["--modules", "-m", "modules", "m"],
-    "not-installed": ["--not-installed", "-n", "not-installed", "n"],
-    "process": ["--process", "-x", "process", "x"],
-    "packages": ["--packages", "-p", "--pkg", "packages", "pkg", "p"],
-    "path": ["--path", "-P", "path", "P"],
-    "systemd": ["--systemd", "-s", "systemd", "s"],
-    "system": ["--system", "-R", "system", "R"],
-    "excludeDotFiles": ["--excludeDotFiles", "--nodot", "excludeDotFiles", "nodot"],
-    "usr": ["--usr", "-U", "usr", "U"],
-    "etc": ["--etc", "-E", "etc", "E"],
-    "var": ["--var", "-V", "var", "V"],
-    "opt": ["--opt", "-O", "opt", "O"],
-    "boot": ["--boot", "-B", "boot", "B"],
-    "lib": ["--lib", "-L", "lib", "L"],
-    "bin": ["--bin", "bin"],
-    "sbin": ["--sbin", "sbin"],
+    "ALL": ["--ALL", "-A"],
+    "all": ["--all"],
+    "aliases": ["--aliases", "-a"],
+    "builtins": ["--builtins", "-b"],
+    "command": ["--command", "-c"],
+    "files": ["--files", "-F"],
+    "functions": ["--functions", "-f"],
+    "help": ["--help", "-h"],
+    "home": ["--home", "-H"],
+    "installed": ["--installed", "-i"],
+    "manpages": ["--manpages", "--man", "-M"],
+    "modules": ["--modules", "-m"],
+    "not-installed": ["--not-installed", "-n"],
+    "process": ["--process", "-x"],
+    "packages": ["--packages", "-p", "--pkg"],
+    "path": ["--path", "-P"],
+    "systemd": ["--systemd", "-s"],
+    "system": ["--system", "-R"],
+    "excludeDotFiles": ["--excludeDotFiles", "--nodot"],
+    "usr": ["--usr", "-U"],
+    "etc": ["--etc", "-E"],
+    "var": ["--var", "-V"],
+    "opt": ["--opt", "-O"],
+    "boot": ["--boot", "-B"],
+    "lib": ["--lib", "-L"],
+    "bin": ["--bin"],
+    "sbin": ["--sbin"],
 }
 ALLOWED_ARGS = [arg for group in FLAG_GROUPS.values() for arg in group]
-ARG_MAP = {arg.lstrip("-").lower(): arg for arg in ALLOWED_ARGS}
+ARG_MAP = {arg: arg for arg in ALLOWED_ARGS}
 
 
 def append_text(line):
@@ -56,7 +56,7 @@ def append_text(line):
 def run_search_thread(arg):
     parts = arg.strip().split(maxsplit=1)
 
-    key = parts[0].lstrip("-").lower()
+    key = parts[0]
 
     if key not in ARG_MAP:
         append_text(f"Argument '{parts[0]}' not allowed\n")

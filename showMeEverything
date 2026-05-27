@@ -559,38 +559,38 @@ Flags can overlap and will stack behavior unless explicitly overridden by mutual
 the flags [--ALL|-A][--all] [--system|-R] will produce a seriously large ammount of data if\n
 ran without a search parameter for older systems i recomend redirection or --less \n
 
---excludeDotFiles | --nodot             exclude ALL dot files from any \$HOME-based searches (legacy home search module) \n
---less                                  pipe output through less for pagination \n
---pipe | pipe                           enable PIPE_MODE for downstream handling (internal behavior toggle) \n
+--excludeDotFiles | --nodot             	exclude ALL dot files from any \$HOME-based searches (legacy home search module) \n
+--less                                  				pipe output through less for pagination \n
+--pipe | pipe                           			enable PIPE_MODE for downstream handling (internal behavior toggle) \n
 
---ALL | ALL | -A | A <STRING>           search commands, manpages, packages, PATH, system, and filesystem for <STRING>\n
-						(full aggressive global scan mode) \n
---all | all <STRING>                    similar to --ALL but no --system (no /sys, reduced system scan footprint) \n
+--ALL | -A  <STRING>           			search commands, manpages, packages, PATH, system, and filesystem for <STRING>\n
+									(full aggressive global scan mode) \n
+--all  <STRING>                    			similar to --ALL but no --system (no /sys, reduced system scan footprint) \n
 
---aliases | aliases | -a | a <STRING>   search shell aliases for <STRING> \n
---bin | bin <STRING>                    search /bin executables only \n
---boot | boot | -B | B <STRING>         search /boot system boot files only \n
---builtins | builtins | -b | b <STRING> search shell builtins for <STRING> \n
---command | command | -c | c <STRING>   search for <STRING> in loaded shell command list \n
---etc | etc | -E | E <STRING>           search /etc configuration directory only \n
---files | files | -F | F <STRING>       search package-managed file database for <STRING> \n
---functions | functions | -f | f <STRING> search loaded shell functions for <STRING> \n
---help | -h                  print this help message \n
---home | home | -H | H <STRING>         search your \$HOME directory for <STRING> \n
---installed | installed | -i | i <STRING> search installed packages for <STRING> \n
---lib | lib | -L | L <STRING>           search /lib system libraries only \n
---modules | modules | -m | m <STRING>   search loaded kernel modules for <STRING> \n
---manpages | manpages | --man | man | -M | M <STRING> search manpage descriptions for <STRING> \n
---not-installed | not-installed | -n | n <STRING> a special pkg search that shows the diff between all pkgs in repo and the installed list to give you the ones not installed\n
---opt | opt | -O | O <STRING>           search /opt third-party software directory only \n
---packages | packages | -p | p | --pkg | pkg <STRING> search detected package manager database for <STRING> \n
---path | path | -P | P <STRING>         search shell \$PATH for <STRING> \n
---process | process | -x | x <STRING>   search running processes for <STRING> \n
---sbin | sbin <STRING>                 search /sbin system executables only \n
---systemd | systemd | -s | s <STRING>   search systemd unit files for <STRING> \n
---system | system | -R | R <STRING>     search system directories (/usr, /etc, /sys, /var, /opt, /boot, /lib, /bin, /sbin) for <STRING> \n
---usr | usr | -U | U <STRING>           search /usr directory only (refined system scan module) \n
---var | var | -V | V <STRING>           search /var directory only (logs, caches, state data) \n
+--aliases | -a  <STRING>  			search shell aliases for <STRING> \n
+--bin <STRING>                  			search /bin executables only \n
+--boot | -B <STRING>      			search /boot system boot files only \n
+--builtins | -b <STRING> 			search shell builtins for <STRING> \n
+--command | -c <STRING>   		search for <STRING> in loaded shell command list \n7
+--etc | -E <STRING>           			search /etc configuration directory only \n
+--files |-F  <STRING>       			search package-managed file database for <STRING> \n
+--functions | -f  <STRING> 			search loaded shell functions for <STRING> \n
+--help | -h                 					print this help message \n
+--home | -H <STRING>         			search your \$HOME directory for <STRING> \n
+--installed | -i <STRING> 			search installed packages for <STRING> \n
+--lib | -L `<STRING>           			search /lib system libraries only \n
+--modules |-m  <STRING>   			search loaded kernel modules for <STRING> \n
+--manpages|--man |-M  <STRING>  search manpage descriptions for <STRING> \n
+--not-installed | -n <STRING> 		a special pkg search that shows the diff between all pkgs in repo and the installed list to give you the ones not installed\n
+--opt | -O  <STRING>           			search /opt third-party software directory only \n
+--packages | -p | --pkg <STRING> 	search detected package manager database for <STRING> \n
+--path | -P  <STRING>         			search shell \$PATH for <STRING> \n
+--process | -x  <STRING>   			search running processes for <STRING> \n
+--sbin  <STRING>                 		        search /sbin system executables only \n
+--systemd | -s  <STRING>  		        search systemd unit files for <STRING> \n
+--system | -R  <STRING>		        search system directories (/usr, /etc, /sys, /var, /opt, /boot, /lib, /bin, /sbin) for <STRING> \n
+--usr | -U <STRING>   			        search /usr directory only (refined system scan module) \n
+--var | -V  <STRING>   			        search /var directory only (logs, caches, state data) \n
 
 Note:
 many search domain [--ALL|-all] will print a header to help to make large outputs easier to handle when redirected to a file or piped to less. \n
@@ -617,6 +617,9 @@ search() {
     local original_args=("$@")
     if [ "${SMECLI_GUI_MODE:-0}" -eq 1 ]; then
         PIPE_MODE=1
+	COLOR_MODE=0
+	HEADER=0
+	FOOTER=0
     fi
 
     while [ $# -gt 0 ]; do
@@ -637,7 +640,7 @@ search() {
         case "$1" in
            --excludeDotFiles|--nodot) EXCLUDE_DOTFILES=true ;;
             --less) use_less=true ;;
-            --pipe )
+            --pipe)
                 PIPE_MODE=1
                 COLOR_MODE=0
                 HEADER=0
