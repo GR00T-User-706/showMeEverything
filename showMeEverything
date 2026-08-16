@@ -7,7 +7,7 @@ readonly SME_VERSION="v2.1.1"
 # PIPE_MODE=1 COLOR_MODE=0  -> machine parseable output
 # any other combination is invalid and fatal
 #==========================================================================#
-# PROJECT_ORIGIN="serach()"
+# PROJECT_ORIGIN="search()"
 #search() {
 #  { echo $path | tr ' ' '\n' | xargs -I{} ls {} | sort -u | grep "$1" } && { print -rl -- ${(k)commands} | grep "$1" }
 #}
@@ -578,7 +578,7 @@ ran without a search parameter for older systems i recomend redirection or --les
 --help | -h                 					print this help message \n
 --home | -H <STRING>         			search your \$HOME directory for <STRING> \n
 --installed | -i <STRING> 			search installed packages for <STRING> \n
---lib | -L `<STRING>           			search /lib system libraries only \n
+--lib | -L <STRING>           			search /lib system libraries only \n
 --modules |-m  <STRING>   			search loaded kernel modules for <STRING> \n
 --manpages|--man |-M  <STRING>  search manpage descriptions for <STRING> \n
 --not-installed | -n <STRING> 		a special pkg search that shows the diff between all pkgs in repo and the installed list to give you the ones not installed\n
