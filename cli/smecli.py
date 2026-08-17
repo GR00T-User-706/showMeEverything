@@ -4,6 +4,8 @@ import sys
 import re
 import argparse
 import subprocess
+import socket
+from datetime import datetime
 
 # ============================================================
 # SME IDENTIFICATION
@@ -27,14 +29,11 @@ NC = "\033[0m"
 # ============================================================
 # GLOBAL CONFIG DEFAULT STATE
 #
-# PIPE_MODE=0 COLOR_MODE=1 -> human readable ANSI output
-# PIPE_MODE=1 COLOR_MODE=0 -> machine parseable output
+# PIPE_MODE=False -> human readable output
+# PIPE_MODE=True  -> machine parseable output
 # ============================================================
 
 PIPE_MODE = False
-COLOR_MODE = True
-HEADER = True
-FOOTER = True
 REGEX = True
 
 
@@ -53,6 +52,44 @@ current_shell = os.path.basename(SHELL)
 EXCLUDES = [
     ("not", "path", "*/.cache/*"),
 ]
+
+
+# ============================================================
+# HEADER AND FOOTER
+# ============================================================
+
+def header(info):
+    if PIPE_MODE:
+        return
+
+    print("#=========================================================#")
+    print(info)
+    print("#=========================================================#")
+
+
+def footer():
+    if PIPE_MODE:
+        return
+
+    today = datetime.now().strftime("%c")
+
+    info = (
+        f"{today} "
+        f"{SHELL} "
+        f"{os.environ.get('USER', '')} "
+        f"{socket.gethostname()}"
+    )
+
+    header(info)
+
+
+# ============================================================
+# OUTPUT
+# ============================================================
+
+def print_results(info, results):
+    header(info)
+    print("\n".join(results))
 
 
 # ============================================================
@@ -378,29 +415,52 @@ if __name__ == "__main__":
         help="Search pattern",
     )
 
+    parser.add_argument(
+        "--pipe",
+        action="store_true",
+        help="Enable machine-readable output mode",
+    )
+
     args = parser.parse_args()
+
+    PIPE_MODE = args.pipe
 
     pattern = " ".join(args.pattern)
 
     if args.commands:
         results = search_loaded_commands(pattern)
-        print("\n".join(results))
+        print_results(
+            f"Searching loaded shell commands for {pattern}...",
+            results,
+        )
 
     if args.path:
         results = search_path(pattern)
-        print("\n".join(results))
+        print_results(
+            f"Searching $PATH for {pattern}...",
+            results,
+        )
 
     if args.builtins:
         results = search_shell_builtins(pattern)
-        print("\n".join(results))
+        print_results(
+            f"Searching shell builtins for {pattern}...",
+            results,
+        )
 
     if args.functions:
         results = search_shell_functions(pattern)
-        print("\n".join(results))
+        print_results(
+            f"Searching loaded shell functions for {pattern}...",
+            results,
+        )
 
     if args.aliases:
         results = search_aliases(pattern)
-        print("\n".join(results))
+        print_results(
+            f"Searching shell aliases for {pattern}...",
+            results,
+        )
 
     if args.all:
         results = []
@@ -411,4 +471,9 @@ if __name__ == "__main__":
         results.extend(search_shell_functions(pattern))
         results.extend(search_aliases(pattern))
 
-        print("\n".join(results))
+        print_results(
+            f"Searching all currently implemented domains for {pattern}...",
+            results,
+        )
+
+    footer()
