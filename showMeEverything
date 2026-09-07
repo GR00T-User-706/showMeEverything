@@ -1,6 +1,6 @@
 #!/usr/bin/env zsh
 readonly SME_SIGNATURE="gr00t-user-706"
-readonly SME_VERSION="v2.1.1"
+readonly SME_VERSION="v2.3.5"
 # GLOBAL CONFIG DEFAULT STATE
 # VALID STATES:
 # PIPE_MODE=0 COLOR_MODE=1  -> human readable ANSI output
@@ -543,22 +543,13 @@ search_sbin() {
     find /sbin -iname "*$1*" "${EXCLUDES[@]}" 2>/dev/null | sme_grep "$1"
 }
 show_help() {
-    echo -e "Author:Zenrich Shadowstep (aka GR00T-User-706)\n
-Contact:crypto_code_weaver_syndicate@proton.me\n
-Version:3.0\n
-[FOR CLI ONLY] Syntax:\n
-	smecli [--less][--flag|-f] <STRING>\n
-	smecli [-a][-B][-c][-f][-i][-m][-H] <STRING>\n
-	(*)smecli [--ALL]   \n
-	(*)smecli [--all]   \n
-\n
-(*) these flags if ran with an empty search param will do a full sysytem dump, performance will vary\n
-search parameters are optional for every Flag both long and short, at least 1 flag \n
-is required to function, some arguments can be stacked for more controlled output. \n
-Flags can overlap and will stack behavior unless explicitly overridden by mutually exclusive modes.\n
-the flags [--ALL|-A][--all] [--system|-R] will produce a seriously large ammount of data if\n
-ran without a search parameter for older systems i recomend redirection or --less \n
+    cat <<'EOF'
+smecli — Show Me Everything CLI
+Author:  Zenrich Shadowstep / GR00T-User-706
+Contact: crypto_code_weaver_syndicate@proton.me
+Version: v2.3.5
 
+<<<<<<< HEAD
 --excludeDotFiles | --nodot             	exclude ALL dot files from any \$HOME-based searches (legacy home search module) \n
 --less                                  				pipe output through less for pagination \n
 --pipe | pipe                           			enable PIPE_MODE for downstream handling (internal behavior toggle) \n
@@ -591,12 +582,178 @@ ran without a search parameter for older systems i recomend redirection or --les
 --system | -R  <STRING>		        search system directories (/usr, /etc, /sys, /var, /opt, /boot, /lib, /bin, /sbin) for <STRING> \n
 --usr | -U <STRING>   			        search /usr directory only (refined system scan module) \n
 --var | -V  <STRING>   			        search /var directory only (logs, caches, state data) \n
+=======
+USAGE:
+  smecli [OPTIONS] [SEARCH_TERM]
+  smecli [SEARCH_FLAGS...] [OPTIONS] [SEARCH_TERM]
 
-Note:
-many search domain [--ALL|-all] will print a header to help to make large outputs easier to handle when redirected to a file or piped to less. \n
-if you wish to pipe the output into less i recomend using the built in --less flag\n"
+BASIC EXAMPLES:
+  smecli --path python
+  smecli --installed firefox
+  smecli --home notes
+  smecli --all network
+  smecli --ALL usb --less
+  smecli --systemd ssh
+  smecli --packages nmap
+  smecli --not-installed python
+
+IMPORTANT:
+  At least one search flag is required.
+  SEARCH_TERM is optional for most flags.
+  Empty searches can produce huge output.
+  Use --less or redirect output when running broad scans.
+>>>>>>> 21e4323 (updates and additions)
+
+OUTPUT OPTIONS:
+  --less
+      Page output through less -R.
+
+  --pipe
+      Machine-friendly output:
+      disables ANSI color, headers, and footer.
+
+  --glob
+      Use literal/glob-style matching instead of regex mode.
+
+  --excludeDotFiles, --nodot
+      Exclude dotfiles from HOME-based searches.
+
+  -v, --version
+      Print SME version/signature.
+
+  -h, --help
+      Show this help.
+
+SEARCH GROUPS:
+  --ALL, -A <TERM>
+      Aggressive full scan:
+      PATH, commands, builtins, aliases, functions, manpages,
+      systemd units, running processes, kernel modules,
+      package repo, installed packages, package file DB,
+      not-installed packages, HOME, and system directories.
+
+      WARNING:
+      Very large output, especially without SEARCH_TERM.
+
+  --all <TERM>
+      Broad user/system scan without full system directory sweep:
+      PATH, commands, builtins, aliases, functions, manpages,
+      running processes, package searches, and HOME.
+
+      Safer than --ALL, but still large.
+
+SHELL SEARCH FLAGS:
+  --aliases, -a <TERM>
+      Search loaded shell aliases.
+
+  --builtins, -b <TERM>
+      Search shell builtins.
+
+  --command, -c <TERM>
+      Search loaded shell command list.
+
+  --functions, -f <TERM>
+      Search loaded shell functions.
+
+  --path, -P <TERM>
+      Search executable files in $PATH.
+
+DOCUMENTATION / PROCESS FLAGS:
+  --manpages, --man, -M <TERM>
+      Search manpage descriptions with apropos.
+
+  --process, -x <TERM>
+      Search running processes.
+
+  --systemd, -s <TERM>
+      Search systemd unit files.
+
+  --modules, -m <TERM>
+      Search loaded kernel modules.
+
+PACKAGE SEARCH FLAGS:
+  --packages, --pkg, -p <TERM>
+      Search detected package manager repository/database.
+
+  --installed, -i <TERM>
+      Search installed packages.
+
+  --not-installed, -n <TERM>
+      Search packages available but not installed.
+
+  --files, -F <TERM>
+      Search package-managed file database / file ownership.
+
+FILESYSTEM SEARCH FLAGS:
+  --home, -H <TERM>
+      Search $HOME.
+
+  --system, -R <TERM>
+      Search major system directories:
+      /usr, /etc, /sys, /dev, /var, /opt, /boot, /lib, /bin, /sbin
+
+  --usr, -U <TERM>
+      Search /usr.
+
+  --etc, -E <TERM>
+      Search /etc.
+
+  --var, -V <TERM>
+      Search /var.
+
+  --opt, -O <TERM>
+      Search /opt.
+
+  --boot, -B <TERM>
+      Search /boot.
+
+  --lib, -L <TERM>
+      Search /lib.
+
+  --bin <TERM>
+      Search /bin.
+
+  --sbin <TERM>
+      Search /sbin.
+
+MUTUALLY EXCLUSIVE MODES:
+  Do not combine:
+    --ALL
+    --all
+    --system
+
+  Pick one broad scan mode at a time. The script will reject conflicting
+  combinations because apparently even search tools need boundaries.
+
+COMMON USE:
+  Find commands:
+    smecli --command ssh
+
+  Find aliases:
+    smecli --aliases git
+
+  Find installed packages:
+    smecli --installed python
+
+  Find package files:
+    smecli --files libssl
+
+  Search home directory:
+    smecli --home project
+
+  Big search with pager:
+    smecli --all docker --less
+
+  Full aggressive scan:
+    smecli --ALL firmware --less
+
+NOTES:
+  - Regex mode is enabled by default.
+  - Use --glob for literal matching.
+  - Use --pipe when feeding output into another script.
+  - Broad scans can produce a truly unreasonable amount of text.
+EOF
 }
-
 # run_full_system_discovery() {
 #    if [ "$EUID" -ne 0 ]; then
 #        echo "search_system_dirs: root privileges required to search system directories."

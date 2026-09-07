@@ -107,7 +107,7 @@ check_existing_installation() {
         IS_OURS=0
         SAME_HASH=0
 
-        if grep -q "SME_SIGNATURE=gr00t-user-706" "$EXISTING_CLI" 2>/dev/null; then
+        if grep -Eq 'SME_SIGNATURE="?gr00t-user-706"?' "$EXISTING_CLI" 2>/dev/null; then
             IS_OURS=1
             echo -e "${GREEN}Recognized as Show Me Everything installation.${NC}"
         else
