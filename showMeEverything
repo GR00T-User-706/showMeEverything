@@ -24,6 +24,7 @@ COLOR_MODE=1
 HEADER=1
 FOOTER=1
 REGEX=1
+SORT_MODE=0
 if [ -n "${ZSH_VERSION:-}" ]; then
     current_shell="zsh"
 elif [ -n "${BASH_VERSION:-}" ]; then
@@ -56,6 +57,14 @@ sme_grep() {
     else
         echo "${RED}FATAL${NC}: invalid PIPE_MODE/COLOR_MODE state" >&2
         exit 2
+    fi
+}
+
+sme_sort() {
+    if [ "$SORT_MODE" = 1 ]; then
+        sort -f
+    else
+        cat
     fi
 }
 
@@ -95,9 +104,9 @@ search_path() {
         [ -d "$dir" ] || continue
 
         if [ "$REGEX" -eq 1 ]; then
-            find "$dir" "${EXCLUDES[@]}" -type f 2>/dev/null | sme_grep "$1"
+            find "$dir" "${EXCLUDES[@]}" -type f 2>/dev/null | sme_grep "$1" | sme_sort
         else
-            find "$dir" "${EXCLUDES[@]}" -iname "*$1*" 2>/dev/null | sme_grep "$1"
+            find "$dir" "${EXCLUDES[@]}" -iname "*$1*" 2>/dev/null | sme_grep "$1" | sme_sort
         fi
     done
 }
@@ -106,9 +115,9 @@ search_loaded_commands() {
     header0 "$info"
 
     if [ "$current_shell" = "zsh" ]; then
-        eval 'print -rl -- ${(k)commands}' | sme_grep "$1"
+        eval 'print -rl -- ${(k)commands}' | sme_grep "$1" | sme_sort
     elif [ "$current_shell" = "bash" ]; then
-        compgen -c | sme_grep "$1"
+        compgen -c | sme_grep "$1" | sme_sort
     fi
 }
 
@@ -117,9 +126,9 @@ search_builtins() {
     header0 "$info"
 
     if [ "$current_shell" = "zsh" ]; then
-        eval 'print -rl -- ${(k)builtins}' | sme_grep "$1"
+        eval 'print -rl -- ${(k)builtins}' | sme_grep "$1" | sme_sort
     elif [ "$current_shell" = "bash" ]; then
-        compgen -b | sme_grep "$1"
+        compgen -b | sme_grep "$1" | sme_sort
     fi
 }
 
@@ -128,16 +137,16 @@ search_shell_functions() {
     header0 "$info"
 
     if [ "$current_shell" = "zsh" ]; then
-        eval 'print -rl -- ${(k)functions}' | sme_grep "$1"
+        eval 'print -rl -- ${(k)functions}' | sme_grep "$1" | sme_sort
     elif [ "$current_shell" = "bash" ]; then
-        compgen -A function | sme_grep "$1"
+        compgen -A function | sme_grep "$1" | sme_sort
     fi
 }
 
 search_aliases() {
     local info="Searching shell aliases for $1..."
     header0 "$info"
-    alias | sme_grep "$1"
+    alias | sme_grep "$1" | sme_sort
 }
 
 {
@@ -169,14 +178,14 @@ search_aliases() {
             pacman_full_repo_search() {
                 local info="Searching Pacman repo for $1..."
                 header0 "$info"
-                pacman -Sl 2>/dev/null | sme_grep "$1"
+                pacman -Sl 2>/dev/null | sme_grep "$1" | sme_sort
             }
 
             # -------- installed ---------- #
             pacman_installed_packages_search() {
                 local info="Searching installed Pacman packages for $1..."
                 header0 "$info"
-                pacman -Q 2>/dev/null | sme_grep "$1"
+                pacman -Q 2>/dev/null | sme_grep "$1" | sme_sort
             }
 
             #--------not installed----------#
@@ -186,15 +195,15 @@ search_aliases() {
                 local info="Searching Pacman for packages not installed: $1..."
                 header0 "$info"
                 comm -23 \
-                    <(pacman -Slq 2>/dev/null | sme_grep "$1" | sort -u) \
-                    <(pacman -Qq 2>/dev/null | sort -u)
+                    <(pacman -Slq 2>/dev/null | sme_grep "$1" | sme_sort | sort -u) \
+                    <(pacman -Qq 2>/dev/null | sort -u) | sme_sort
             )
 
             # --------- files DB ---------- #
             pacman_files_db_search() {
                 local info="Searching Pacman file database for $1..."
                 header0 "$info"
-                pacman -F "$1" 2>/dev/null
+                pacman -F "$1" 2>/dev/null | sme_sort
             }
         }
     }
@@ -209,9 +218,9 @@ search_aliases() {
                 local info="Searching APT repo for $1..."
                 header0 "$info"
                 if [ -z "$1" ]; then
-                    apt list 2>/dev/null
+                    apt list 2>/dev/null | sme_sort
                 else
-                    apt list 2>/dev/null | sme_grep "$1"
+                    apt list 2>/dev/null | sme_sort | sme_grep "$1" | sme_sort
                 fi
             }
 
@@ -219,7 +228,7 @@ search_aliases() {
             apt_installed_packages_search() {
                 local info="Searching installed APT packages for $1..."
                 header0 "$info"
-                dpkg-query -W 2>/dev/null | sme_grep "$1"
+                dpkg-query -W 2>/dev/null | sme_grep "$1" | sme_sort
             }
 
             #--------not installed----------#
@@ -227,15 +236,15 @@ search_aliases() {
                 local info="Searching APT for packages not installed: $1..."
                 header0 "$info"
                 comm -23 \
-                    <(apt-cache pkgnames 2>/dev/null | sme_grep "$1" | sort -u) \
-                    <(dpkg-query -W -f='${binary:Package}\n' 2>/dev/null | sort -u)
+                    <(apt-cache pkgnames 2>/dev/null | sme_grep "$1" | sme_sort | sort -u) \
+                    <(dpkg-query -W -f='${binary:Package}\n' 2>/dev/null | sort -u) | sme_sort
             }
 
             # --------- files DB ---------- #
             apt_files_db_search() {
                 local info="Searching installed APT/DPKG file ownership for $1..."
                 header0 "$info"
-                dpkg -S "*$1*" 2>/dev/null
+                dpkg -S "*$1*" 2>/dev/null | sme_sort
             }
         }
     }
@@ -249,14 +258,14 @@ search_aliases() {
             dnf_full_repo_search() {
                 local info="Searching DNF repo for $1..."
                 header0 "$info"
-                dnf list available 2>/dev/null | sme_grep "$1"
+                dnf list available 2>/dev/null | sme_grep "$1" | sme_sort
             }
 
             # -------- installed ---------- #
             dnf_installed_packages_search() {
                 local info="Searching installed DNF packages for $1..."
                 header0 "$info"
-                dnf list installed 2>/dev/null | sme_grep "$1"
+                dnf list installed 2>/dev/null | sme_grep "$1" | sme_sort
             }
 
             #--------not installed----------#
@@ -264,15 +273,15 @@ search_aliases() {
                 local info="Searching DNF for packages not installed: $1..."
                 header0 "$info"
                 comm -23 \
-                    <(dnf list available 2>/dev/null | awk 'NR > 1 {print $1}' | sed 's/\.[^.[:space:]]*$//' | sme_grep "$1" | sort -u) \
-                    <(dnf list installed 2>/dev/null | awk 'NR > 1 {print $1}' | sed 's/\.[^.[:space:]]*$//' | sort -u)
+                    <(dnf list available 2>/dev/null | awk 'NR > 1 {print $1}' | sed 's/\.[^.[:space:]]*$//' | sme_grep "$1" | sme_sort | sort -u) \
+                    <(dnf list installed 2>/dev/null | awk 'NR > 1 {print $1}' | sed 's/\.[^.[:space:]]*$//' | sort -u) | sme_sort
             }
 
             # --------- files DB ---------- #
             dnf_files_db_search() {
                 local info="Searching DNF/RPM file ownership for $1..."
                 header0 "$info"
-                repoquery -f "*$1*" 2>/dev/null
+                repoquery -f "*$1*" 2>/dev/null | sme_sort
             }
         }
     }
@@ -286,14 +295,14 @@ search_aliases() {
             zypper_full_repo_search() {
                 local info="Searching Zypper repo for $1..."
                 header0 "$info"
-                zypper search 2>/dev/null | sme_grep "$1"
+                zypper search 2>/dev/null | sme_grep "$1" | sme_sort
             }
 
             # -------- installed ---------- #
             zypper_installed_packages_search() {
                 local info="Searching installed Zypper packages for $1..."
                 header0 "$info"
-                rpm -qa --qf '%{NAME} %{VERSION}-%{RELEASE}\n' 2>/dev/null | sme_grep "$1"
+                rpm -qa --qf '%{NAME} %{VERSION}-%{RELEASE}\n' 2>/dev/null | sme_grep "$1" | sme_sort
             }
 
             #--------not installed----------#
@@ -301,15 +310,15 @@ search_aliases() {
                 local info="Searching Zypper for packages not installed: $1..."
                 header0 "$info"
                 comm -23 \
-                    <(zypper search 2>/dev/null | awk 'NR > 4 {print $3}' | sme_grep "$1" | sort -u) \
-                    <(rpm -qa --qf '%{NAME}\n' 2>/dev/null | sort -u)
+                    <(zypper search 2>/dev/null | awk 'NR > 4 {print $3}' | sme_grep "$1" | sme_sort | sort -u) \
+                    <(rpm -qa --qf '%{NAME}\n' 2>/dev/null | sort -u) | sme_sort
             }
 
             # --------- files DB ---------- #
             zypper_files_db_search() {
                 local info="Searching Zypper/RPM file ownership for $1..."
                 header0 "$info"
-                rpm -qal 2>/dev/null | sme_grep "$1"
+                rpm -qal 2>/dev/null | sme_grep "$1" | sme_sort
             }
         }
     }
@@ -323,14 +332,14 @@ search_aliases() {
             apk_full_repo_search() {
                 local info="Searching APK repo for $1..."
                 header0 "$info"
-                apk search 2>/dev/null | sme_grep "$1"
+                apk search 2>/dev/null | sme_grep "$1" | sme_sort
             }
 
             # -------- installed ---------- #
             apk_installed_packages_search() {
                 local info="Searching installed APK packages for $1..."
                 header0 "$info"
-                apk info 2>/dev/null | sme_grep "$1"
+                apk info 2>/dev/null | sme_grep "$1" | sme_sort
             }
 
             #--------not installed----------#
@@ -338,15 +347,15 @@ search_aliases() {
                 local info="Searching APK for packages not installed: $1..."
                 header0 "$info"
                 comm -23 \
-                    <(apk search 2>/dev/null | sed 's/-[0-9].*$//' | sme_grep "$1" | sort -u) \
-                    <(apk info 2>/dev/null | sort -u)
+                    <(apk search 2>/dev/null | sed 's/-[0-9].*$//' | sme_grep "$1" | sme_sort | sort -u) \
+                    <(apk info 2>/dev/null | sort -u) | sme_sort
             }
 
             # --------- files DB ---------- #
             apk_files_db_search() {
                 local info="Searching APK file ownership for $1..."
                 header0 "$info"
-                apk info -L 2>/dev/null | sme_grep "$1"
+                apk info -L 2>/dev/null | sme_grep "$1" | sme_sort
             }
         }
     }
@@ -409,7 +418,7 @@ search_manpages() {
     header0 "$info"
 
     if command -v apropos >/dev/null 2>&1; then
-        apropos -w "$wcs" | sme_grep "$1"
+        apropos -w "$wcs" | sme_grep "$1" | sme_sort
     fi
 }
 
@@ -418,14 +427,14 @@ search_systemd_units() {
     header0 "$info"
 
     if command -v systemctl >/dev/null 2>&1; then
-        systemctl list-unit-files 2>/dev/null | sme_grep "$1"
+        systemctl list-unit-files 2>/dev/null | sme_grep "$1" | sme_sort
     fi
 }
 
 search_running_processes() {
     local info="Searching running processes for $1..."
     header0 "$info"
-    ps aux 2>/dev/null | sme_grep "$1"
+    ps aux 2>/dev/null | sme_grep "$1" | sme_sort
 }
 
 loaded_kernel_modules() {
@@ -433,7 +442,7 @@ loaded_kernel_modules() {
     header0 "$info"
 
     if command -v lsmod >/dev/null 2>&1; then
-        lsmod 2>/dev/null | sme_grep "$1"
+        lsmod 2>/dev/null | sme_grep "$1" | sme_sort
     fi
 }
 
@@ -446,15 +455,15 @@ search_home_directory() {
 
     if [ "$exclude_dotfiles" = true ]; then
         if [ "$REGEX" -eq 1 ]; then
-            find "$HOME" -not -path "$exclude_dirs/*" -not -path "$HOME/.*" -type f 2>/dev/null | sme_grep "$1"
+            find "$HOME" -not -path "$exclude_dirs/*" -not -path "$HOME/.*" -type f 2>/dev/null | sme_grep "$1" | sme_sort
         else
-            find "$HOME" -not -path "$exclude_dirs/*" -not -path "$HOME/.*" -iname "*$1*" 2>/dev/null
+            find "$HOME" -not -path "$exclude_dirs/*" -not -path "$HOME/.*" -iname "*$1*" 2>/dev/null | sme_sort
         fi
     else
         if [ "$REGEX" -eq 1 ]; then
-            find "$HOME" -not -path "$exclude_dirs/*" -type f 2>/dev/null | sme_grep "$1"
+            find "$HOME" -not -path "$exclude_dirs/*" -type f 2>/dev/null | sme_grep "$1" | sme_sort
         else
-            find "$HOME" -not -path "$exclude_dirs/*" -iname "*$1*" 2>/dev/null
+            find "$HOME" -not -path "$exclude_dirs/*" -iname "*$1*" 2>/dev/null | sme_sort
         fi
     fi
 }
@@ -469,9 +478,9 @@ search_system_dirs() {
         [ -d "$d" ] || continue
 
         if [ "$REGEX" -eq 1 ]; then
-            find "$d" -type f 2>/dev/null | sme_grep "$1"
+            find "$d" -type f 2>/dev/null | sme_grep "$1" | sme_sort
         else
-            find "$d" -iname "*$1*" 2>/dev/null
+            find "$d" -iname "*$1*" 2>/dev/null | sme_sort
         fi
     done
 }
@@ -480,7 +489,7 @@ search_usr() {
     header0 "$info"
 
     [ -d /usr ] || return
-    find /usr -iname "*$1*" "${EXCLUDES[@]}" 2>/dev/null | sme_grep "$1"
+    find /usr -iname "*$1*" "${EXCLUDES[@]}" 2>/dev/null | sme_grep "$1" | sme_sort
 }
 
 search_etc() {
@@ -488,7 +497,7 @@ search_etc() {
     header0 "$info"
 
     [ -d /etc ] || return
-    find /etc -iname "*$1*" "${EXCLUDES[@]}" 2>/dev/null | sme_grep "$1"
+    find /etc -iname "*$1*" "${EXCLUDES[@]}" 2>/dev/null | sme_grep "$1" | sme_sort
 }
 
 search_sys() {
@@ -496,7 +505,7 @@ search_sys() {
     header0 "$info"
 
     [ -d /sys ] || return
-    find /sys -iname "*$1*" "${EXCLUDES[@]}" 2>/dev/null | sme_grep "$1"
+    find /sys -iname "*$1*" "${EXCLUDES[@]}" 2>/dev/null | sme_grep "$1" | sme_sort
 }
 
 search_var() {
@@ -504,7 +513,7 @@ search_var() {
     header0 "$info"
 
     [ -d /var ] || return
-    find /var -iname "*$1*" "${EXCLUDES[@]}" 2>/dev/null | sme_grep "$1"
+    find /var -iname "*$1*" "${EXCLUDES[@]}" 2>/dev/null | sme_grep "$1" | sme_sort
 }
 
 search_opt() {
@@ -512,45 +521,45 @@ search_opt() {
     header0 "$info"
 
     [ -d /opt ] || return
-    find /opt -iname "*$1*" "${EXCLUDES[@]}" 2>/dev/null | sme_grep "$1"
+    find /opt -iname "*$1*" "${EXCLUDES[@]}" 2>/dev/null | sme_grep "$1" | sme_sort
 }
 
 search_boot() {
     local info="Searching /boot for $1..."
     header0 "$info"
     [ -d /boot ] || return
-    find /boot -iname "*$1*" "${EXCLUDES[@]}" 2>/dev/null | sme_grep "$1"
+    find /boot -iname "*$1*" "${EXCLUDES[@]}" 2>/dev/null | sme_grep "$1" | sme_sort
 }
 
 search_lib() {
     local info="Searching /lib for $1..."
     header0 "$info"
     [ -d /lib ] || return
-    find /lib -iname "*$1*" "${EXCLUDES[@]}" 2>/dev/null | sme_grep "$1"
+    find /lib -iname "*$1*" "${EXCLUDES[@]}" 2>/dev/null | sme_grep "$1" | sme_sort
 }
 
 search_bin() {
     local info="Searching /bin for $1..."
     header0 "$info"
     [ -d /bin ] || return
-    find /bin -iname "*$1*" "${EXCLUDES[@]}" 2>/dev/null | sme_grep "$1"
+    find /bin -iname "*$1*" "${EXCLUDES[@]}" 2>/dev/null | sme_grep "$1" | sme_sort
 }
 
 search_sbin() {
     local info="Searching /sbin for $1..."
     header0 "$info"
     [ -d /sbin ] || return
-    find /sbin -iname "*$1*" "${EXCLUDES[@]}" 2>/dev/null | sme_grep "$1"
+    find /sbin -iname "*$1*" "${EXCLUDES[@]}" 2>/dev/null | sme_grep "$1" | sme_sort
 }
 show_help() {
     echo -e "Author:Zenrich Shadowstep (aka GR00T-User-706)\n
 Contact:crypto_code_weaver_syndicate@proton.me\n
 Version:3.0\n
 [FOR CLI ONLY] Syntax:\n
-	smecli [--less][--flag|-f] <STRING>\n
-	smecli [-a][-B][-c][-f][-i][-m][-H] <STRING>\n
-	(*)smecli [--ALL]   \n
-	(*)smecli [--all]   \n
+    smecli [--less][--flag|-f] <STRING>\n
+    smecli [-a][-B][-c][-f][-i][-m][-H] <STRING>\n
+    (*)smecli [--ALL]   \n
+    (*)smecli [--all]   \n
 \n
 (*) these flags if ran with an empty search param will do a full sysytem dump, performance will vary\n
 search parameters are optional for every Flag both long and short, at least 1 flag \n
@@ -559,38 +568,39 @@ Flags can overlap and will stack behavior unless explicitly overridden by mutual
 the flags [--ALL|-A][--all] [--system|-R] will produce a seriously large ammount of data if\n
 ran without a search parameter for older systems i recomend redirection or --less \n
 
---excludeDotFiles | --nodot             	exclude ALL dot files from any \$HOME-based searches (legacy home search module) \n
---less                                  				pipe output through less for pagination \n
---pipe | pipe                           			enable PIPE_MODE for downstream handling (internal behavior toggle) \n
+--excludeDotFiles | --nodot                 exclude ALL dot files from any \$HOME-based searches (legacy home search module) \n
+--less                                                  pipe output through less for pagination \n
+--sort                                                  sort search results alphabetically, case-insensitive \n
+--pipe | pipe                                       enable PIPE_MODE for downstream handling (internal behavior toggle) \n
 
---ALL | -A  <STRING>           			search commands, manpages, packages, PATH, system, and filesystem for <STRING>\n
-									(full aggressive global scan mode) \n
---all  <STRING>                    			similar to --ALL but no --system (no /sys, reduced system scan footprint) \n
+--ALL | -A  <STRING>                       search commands, manpages, packages, PATH, system, and filesystem for <STRING>\n
+                                    (full aggressive global scan mode) \n
+--all  <STRING>                                similar to --ALL but no --system (no /sys, reduced system scan footprint) \n
 
---aliases | -a  <STRING>  			search shell aliases for <STRING> \n
---bin <STRING>                  			search /bin executables only \n
---boot | -B <STRING>      			search /boot system boot files only \n
---builtins | -b <STRING> 			search shell builtins for <STRING> \n
---command | -c <STRING>   		search for <STRING> in loaded shell command list \n7
---etc | -E <STRING>           			search /etc configuration directory only \n
---files |-F  <STRING>       			search package-managed file database for <STRING> \n
---functions | -f  <STRING> 			search loaded shell functions for <STRING> \n
---help | -h                 					print this help message \n
---home | -H <STRING>         			search your \$HOME directory for <STRING> \n
---installed | -i <STRING> 			search installed packages for <STRING> \n
---lib | -L <STRING>           			search /lib system libraries only \n
---modules |-m  <STRING>   			search loaded kernel modules for <STRING> \n
+--aliases | -a  <STRING>              search shell aliases for <STRING> \n
+--bin <STRING>                              search /bin executables only \n
+--boot | -B <STRING>                  search /boot system boot files only \n
+--builtins | -b <STRING>             search shell builtins for <STRING> \n
+--command | -c <STRING>           search for <STRING> in loaded shell command list \n7
+--etc | -E <STRING>                       search /etc configuration directory only \n
+--files |-F  <STRING>                   search package-managed file database for <STRING> \n
+--functions | -f  <STRING>             search loaded shell functions for <STRING> \n
+--help | -h                                     print this help message \n
+--home | -H <STRING>                     search your \$HOME directory for <STRING> \n
+--installed | -i <STRING>             search installed packages for <STRING> \n
+--lib | -L <STRING>                       search /lib system libraries only \n
+--modules |-m  <STRING>               search loaded kernel modules for <STRING> \n
 --manpages|--man |-M  <STRING>  search manpage descriptions for <STRING> \n
---not-installed | -n <STRING> 		a special pkg search that shows the diff between all pkgs in repo and the installed list to give you the ones not installed\n
---opt | -O  <STRING>           			search /opt third-party software directory only \n
---packages | -p | --pkg <STRING> 	search detected package manager database for <STRING> \n
---path | -P  <STRING>         			search shell \$PATH for <STRING> \n
---process | -x  <STRING>   			search running processes for <STRING> \n
---sbin  <STRING>                 		        search /sbin system executables only \n
---systemd | -s  <STRING>  		        search systemd unit files for <STRING> \n
---system | -R  <STRING>		        search system directories (/usr, /etc, /sys, /var, /opt, /boot, /lib, /bin, /sbin) for <STRING> \n
---usr | -U <STRING>   			        search /usr directory only (refined system scan module) \n
---var | -V  <STRING>   			        search /var directory only (logs, caches, state data) \n
+--not-installed | -n <STRING>         a special pkg search that shows the diff between all pkgs in repo and the installed list to give you the ones not installed\n
+--opt | -O  <STRING>                       search /opt third-party software directory only \n
+--packages | -p | --pkg <STRING>     search detected package manager database for <STRING> \n
+--path | -P  <STRING>                     search shell \$PATH for <STRING> \n
+--process | -x  <STRING>               search running processes for <STRING> \n
+--sbin  <STRING>                                 search /sbin system executables only \n
+--systemd | -s  <STRING>                  search systemd unit files for <STRING> \n
+--system | -R  <STRING>                search system directories (/usr, /etc, /sys, /var, /opt, /boot, /lib, /bin, /sbin) for <STRING> \n
+--usr | -U <STRING>                       search /usr directory only (refined system scan module) \n
+--var | -V  <STRING>                       search /var directory only (logs, caches, state data) \n
 
 Note:
 many search domain [--ALL|-all] will print a header to help to make large outputs easier to handle when redirected to a file or piped to less. \n
@@ -617,9 +627,9 @@ search() {
     local original_args=("$@")
     if [ "${SMECLI_GUI_MODE:-0}" -eq 1 ]; then
         PIPE_MODE=1
-	COLOR_MODE=0
-	HEADER=0
-	FOOTER=0
+    COLOR_MODE=0
+    HEADER=0
+    FOOTER=0
     fi
 
     while [ $# -gt 0 ]; do
@@ -640,6 +650,7 @@ search() {
         case "$1" in
            --excludeDotFiles|--nodot) EXCLUDE_DOTFILES=true ;;
             --less) use_less=true ;;
+            --sort) SORT_MODE=1 ;;
             --pipe)
                 PIPE_MODE=1
                 COLOR_MODE=0
@@ -742,7 +753,7 @@ search() {
                     # allowed (part of ALL/all)
                     ;;
                 *)
-                    echo "$0: when using ALL/all, only --less, --pipe, --glob --excludeDotFiles are allowed alongside"
+                    echo "$0: when using ALL/all, only --less, --sort, --pipe, --glob --excludeDotFiles are allowed alongside"
                     return 1
                     ;;
             esac

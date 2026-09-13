@@ -463,17 +463,33 @@ if __name__ == "__main__":
         )
 
     if args.all:
-        results = []
-
-        results.extend(search_loaded_commands(pattern))
-        results.extend(search_path(pattern))
-        results.extend(search_shell_builtins(pattern))
-        results.extend(search_shell_functions(pattern))
-        results.extend(search_aliases(pattern))
-
+        results = search_loaded_commands(pattern)
         print_results(
-            f"Searching all currently implemented domains for {pattern}...",
+            f"Searching loaded shell commands for {pattern}...",
             results,
         )
 
+        results = search_path(pattern)
+        print_results(
+            f"Searching $PATH for {pattern}...",
+            results,
+        )
+
+        results = search_shell_builtins(pattern)
+        print_results(
+            f"Searching shell builtins for {pattern}...",
+            results,
+        )
+
+        results = search_shell_functions(pattern)
+        print_results(
+            f"Searching loaded shell functions for {pattern}...",
+            results,
+        )
+
+        results = search_aliases(pattern)
+        print_results(
+            f"Searching shell aliases for {pattern}...",
+            results,
+        )
     footer()
