@@ -1,0 +1,271 @@
+#!/usr/bin/env bash
+# SME_SIGNATURE=gr00t-user-706
+set -e
+
+# --- Colors for output ---
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+NC='\033[0m'
+
+# --- Global state ---
+INSTALL_MODE="termux_cli"
+
+# --- Detect shell and set SCRIPT_DIR ---
+detect_shell() {
+    if [ -n "${ZSH_VERSION:-}" ]; then
+        SCRIPT_DIR="${0:A:h}"
+    elif [ -n "${BASH_VERSION:-}" ]; then
+        SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd -P)"
+    else
+        echo -e "${RED}Unsupported shell. Only Bash and Zsh are supported.${NC}"
+        exit 1
+    fi
+}
+
+# --- Define paths ---
+define_paths() {
+    if [ -z "${PREFIX:-}" ]; then
+        echo -e "${RED}FATAL: \$PREFIX is not set.${NC}"
+        echo -e "${YELLOW}This installer is intended to run inside Termux.${NC}"
+        exit 1
+    fi
+
+    SMECLI_SRC="$SCRIPT_DIR/showMeEverything"
+    SMECLI_BIN="$PREFIX/bin/showMeEverything"
+    SMECLI="$PREFIX/bin/smecli"
+}
+
+# --- Check Termux ---
+check_termux() {
+    if [ -z "${PREFIX:-}" ] || [ ! -d "$PREFIX" ]; then
+        echo -e "${RED}ERROR: Termux environment not detected.${NC}"
+        echo -e "${YELLOW}This installer is specifically for Termux.${NC}"
+        exit 1
+    fi
+
+    if [ ! -d "$PREFIX/bin" ]; then
+        echo -e "${RED}ERROR: Termux bin directory not found: $PREFIX/bin${NC}"
+        exit 1
+    fi
+
+    echo -e "${GREEN}Termux environment detected.${NC}"
+    echo -e "PREFIX: $PREFIX"
+}
+
+# --- Check root ---
+check_root() {
+    if [[ $EUID -eq 0 ]]; then
+        echo -e "${YELLOW}Running as UID 0 is unexpected in Termux.${NC}"
+        echo -e "${YELLOW}Continuing because this installer does not require root.${NC}"
+    fi
+}
+
+# --- Header ---
+show_header() {
+    echo -e "${GREEN}Show Me Everything Termux Installer${NC}"
+    echo -e "----------------------------------------"
+    echo -e "Target: ${YELLOW}Termux / Android${NC}"
+    echo -e "Mode: ${GREEN}CLI only${NC}"
+    echo -e "GUI: ${RED}SKIPPED${NC}"
+    echo -e ""
+}
+
+# --- Check CLI source ---
+check_cli_source() {
+    if [ ! -f "$SMECLI_SRC" ]; then
+        echo -e "${RED}FATAL: CLI core not found:${NC}"
+        echo -e "  $SMECLI_SRC"
+        echo -e ""
+        echo -e "${YELLOW}Run this installer from the Show Me Everything repository root.${NC}"
+        exit 1
+    fi
+
+    if [ ! -r "$SMECLI_SRC" ]; then
+        echo -e "${RED}ERROR: CLI source is not readable:${NC}"
+        echo -e "  $SMECLI_SRC"
+        exit 1
+    fi
+}
+
+# --- Check and install required shell ---
+check_zsh() {
+    echo -e "${GREEN}[Shell] Checking Zsh...${NC}"
+
+    if command -v zsh >/dev/null 2>&1; then
+        echo -e "${GREEN}Zsh detected: $(command -v zsh)${NC}"
+        return
+    fi
+
+    echo -e "${YELLOW}Zsh is required by the Show Me Everything CLI and was not found.${NC}"
+
+    if ! command -v pkg >/dev/null 2>&1; then
+        echo -e "${RED}ERROR: Termux package manager 'pkg' was not found.${NC}"
+        echo -e "${YELLOW}Install Zsh manually, then run this installer again.${NC}"
+        exit 1
+    fi
+
+    read -rp "Install Zsh with pkg now? [Y/n]: " CONFIRM
+
+    case "$CONFIRM" in
+        [nN]|[nN][oO])
+            echo -e "${RED}Zsh is required. Installation aborted.${NC}"
+            exit 1
+            ;;
+        *)
+            echo -e "${GREEN}Installing Zsh...${NC}"
+            pkg install -y zsh
+            ;;
+    esac
+
+    if ! command -v zsh >/dev/null 2>&1; then
+        echo -e "${RED}ERROR: Zsh installation did not complete successfully.${NC}"
+        exit 1
+    fi
+
+    echo -e "${GREEN}Zsh installed successfully.${NC}"
+}
+
+# --- Check existing installation ---
+check_existing_installation() {
+    EXISTING_CLI="$SMECLI_BIN"
+    NEW_CLI="$SMECLI_SRC"
+
+    if [ ! -f "$EXISTING_CLI" ]; then
+        return
+    fi
+
+    echo -e "${YELLOW}Existing Show Me Everything CLI detected at:${NC}"
+    echo -e "  $EXISTING_CLI"
+
+    IS_OURS=0
+    SAME_HASH=0
+
+    if grep -q "SME_SIGNATURE=gr00t-user-706" "$EXISTING_CLI" 2>/dev/null; then
+        IS_OURS=1
+        echo -e "${GREEN}Recognized as Show Me Everything installation.${NC}"
+    else
+        echo -e "${YELLOW}WARNING: Existing file is NOT recognized as this project.${NC}"
+    fi
+
+    if command -v sha256sum >/dev/null 2>&1; then
+        EXISTING_HASH=$(sha256sum "$EXISTING_CLI" | awk '{print $1}')
+        NEW_HASH=$(sha256sum "$NEW_CLI" | awk '{print $1}')
+
+        if [ "$EXISTING_HASH" = "$NEW_HASH" ]; then
+            SAME_HASH=1
+            echo -e "${GREEN}CLI is identical to this version.${NC}"
+        else
+            echo -e "${YELLOW}CLI differs from this version.${NC}"
+        fi
+    else
+        echo -e "${YELLOW}sha256sum not available - skipping hash comparison.${NC}"
+    fi
+
+    echo -e ""
+
+    if [ "$IS_OURS" -eq 1 ] && [ "$SAME_HASH" -eq 1 ]; then
+        read -rp "Same version already installed. Reinstall anyway? [y/N]: " CONFIRM
+    elif [ "$IS_OURS" -eq 1 ]; then
+        read -rp "Update existing Show Me Everything installation? [Y/n]: " CONFIRM
+        [ -z "$CONFIRM" ] && CONFIRM="y"
+    else
+        read -rp "Overwrite unknown file at this path? [y/N]: " CONFIRM
+    fi
+
+    case "$CONFIRM" in
+        [yY]|[yY][eE][sS])
+            echo -e "${GREEN}Continuing installation...${NC}"
+            ;;
+        *)
+            echo -e "Installation ${RED}aborted${NC}."
+            exit 0
+            ;;
+    esac
+}
+
+# --- Clean previous Termux CLI installation ---
+clean_previous_install() {
+    echo -e "${YELLOW}Cleaning previous Termux CLI installation...${NC}"
+
+    rm -f "$SMECLI_BIN"
+    rm -f "$SMECLI"
+}
+
+# --- Install CLI ---
+install_cli() {
+    echo -e "${GREEN}[CLI] Installing core...${NC}"
+
+    mkdir -p "$PREFIX/bin"
+
+    install -m 555 "$SMECLI_SRC" "$SMECLI_BIN"
+    ln -sf "$SMECLI_BIN" "$SMECLI"
+
+    echo -e "${GREEN}CLI installed.${NC}"
+}
+
+# --- Verify installation ---
+verify_installation() {
+    echo -e "${GREEN}[Verify] Checking installation...${NC}"
+
+    if [ ! -x "$SMECLI_BIN" ]; then
+        echo -e "${RED}ERROR: Installed CLI is not executable:${NC}"
+        echo -e "  $SMECLI_BIN"
+        exit 1
+    fi
+
+    if [ ! -L "$SMECLI" ] && [ ! -x "$SMECLI" ]; then
+        echo -e "${RED}ERROR: smecli command was not created:${NC}"
+        echo -e "  $SMECLI"
+        exit 1
+    fi
+
+    if ! "$SMECLI_BIN" --help >/dev/null 2>&1; then
+        echo -e "${YELLOW}WARNING: CLI could not complete '--help' verification.${NC}"
+        echo -e "${YELLOW}The command was installed, but some Linux-specific functionality may not work on Android/Termux.${NC}"
+    else
+        echo -e "${GREEN}CLI verification passed.${NC}"
+    fi
+}
+
+# --- Show summary ---
+show_summary() {
+    echo -e ""
+    echo -e "========== INSTALL SUMMARY =========="
+    echo -e "Platform: ${GREEN}Termux / Android${NC}"
+    echo -e "Mode: ${GREEN}CLI-ONLY${NC}"
+    echo -e "CLI: ${GREEN}INSTALLED${NC} ✓"
+    echo -e "GUI: ${YELLOW}SKIPPED${NC}"
+    echo -e ""
+    echo -e "Commands:"
+    echo -e "  ${GREEN}smecli${NC}"
+    echo -e "  ${GREEN}showMeEverything${NC}"
+    echo -e ""
+    echo -e "Installed:"
+    echo -e "  $SMECLI_BIN"
+    echo -e "  $SMECLI"
+    echo -e ""
+    echo -e "${YELLOW}Note: Show Me Everything is a Linux CLI. Android/Termux-specific limitations are not modified or hidden by this installer.${NC}"
+    echo -e "===================================="
+    echo -e ""
+}
+
+# --- Main execution flow ---
+main() {
+    clear
+    detect_shell
+    define_paths
+    check_termux
+    check_root
+    show_header
+    check_cli_source
+    check_zsh
+    check_existing_installation
+    clean_previous_install
+    install_cli
+    verify_installation
+    show_summary
+}
+
+# --- Run the main function ---
+main
