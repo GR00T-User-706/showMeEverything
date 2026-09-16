@@ -2,7 +2,11 @@
 # SME_SIGNATURE=gr00t-user-706
 set -e
 
-# --- Colors for output ---
+# ============================================================
+# Show Me Everything - Unified Intelligent Installer
+# ============================================================
+
+# --- Colors ---
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
@@ -10,14 +14,32 @@ NC='\033[0m'
 
 # --- Global state ---
 INSTALL_MODE=""
+SME_ENVIRONMENT=""
+SME_SHEBANG=""
+CLI_SOURCE_COMPLETE=1
+GUI_SOURCE_COMPLETE=0
+PYTHON_TK_OK=0
 PYTHON_INSTALLED=0
+QT_DEPS_OK=0
+QT_BUILD_OK=0
 QT_INSTALLED=0
+MISSING_CLI_COMPONENTS=()
+MISSING_GUI_COMPONENTS=()
+CONFLICTS=()
+SUDO_USER="${SUDO_USER:-}"
 
-# --- Detect shell and set SCRIPT_DIR ---
+# --- Immutable project identity ---
+readonly SME_SIGNATURE="gr00t-user-706"
+
+# --- Platform-specific shebang values ---
+SME_LINUX="/usr/bin/env zsh"
+SME_TERMUX="${PREFIX:-}/bin/env zsh"
+
+# --- Detect shell and repository location ---
 detect_shell() {
-    if [ -n "$ZSH_VERSION" ]; then
+    if [ -n "${ZSH_VERSION:-}" ]; then
         SCRIPT_DIR="${0:A:h}"
-    elif [ -n "$BASH_VERSION" ]; then
+    elif [ -n "${BASH_VERSION:-}" ]; then
         SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd -P)"
     else
         echo -e "${RED}Unsupported shell. Only Bash and Zsh are supported.${NC}"
@@ -25,207 +47,624 @@ detect_shell() {
     fi
 }
 
-# --- Define paths ---
+# --- Detect environment: Termux before generic Linux ---
+detect_environment() {
+    local os
+    os="$(uname -s 2>/dev/null || true)"
+
+    if [ "$os" = "Linux" ] \
+        && [ -n "${PREFIX:-}" ] \
+        && [ -d "${PREFIX:-/nonexistent}" ] \
+        && [ -d "${PREFIX:-/nonexistent}/bin" ] \
+        && { [ -n "${TERMUX_VERSION:-}" ] || [ -n "${TERMUX_APK_RELEASE:-}" ] || [[ "${PREFIX:-}" == /data/data/*/files/usr ]]; }; then
+
+        SME_ENVIRONMENT="TERMUX"
+        SME_SHEBANG="$SME_TERMUX"
+        return
+    fi
+
+    if [ "$os" = "Linux" ]; then
+        SME_ENVIRONMENT="LINUX"
+        SME_SHEBANG="$SME_LINUX"
+        return
+    fi
+
+    SME_ENVIRONMENT="UNSUPPORTED"
+}
+
+# --- Define repository and installation paths ---
 define_paths() {
+    SME_CLI_DIR="$SCRIPT_DIR/showmeeverything"
+
+    SME_CLI_SRC="$SME_CLI_DIR/showMeEverything.zsh"
+    SME_LAUNCHER_SRC="$SME_CLI_DIR/showMeEverything.launcher"
+
+    if [ "$SME_ENVIRONMENT" = "TERMUX" ]; then
+        SMECLI_BIN="$PREFIX/bin/showMeEverything"
+        SMECLI="$PREFIX/bin/smecli"
+        SMECLI_MODULE_DIR="$PREFIX/lib/showMeEverything"
+    else
+        SMECLI_BIN="/usr/local/bin/showMeEverything"
+        SMECLI="/usr/local/bin/smecli"
+        SMECLI_MODULE_DIR="/usr/local/lib/showMeEverything"
+    fi
+
     SMEICON_SRC="$SCRIPT_DIR/showmeeverything_gui/assets/showMeEverything.png"
     SMEICON="/usr/local/share/icons/showMeEverything.png"
-    SMECLI_SRC="$SCRIPT_DIR/showMeEverything"
-    SMECLI_BIN="/usr/local/bin/showMeEverything"
-    SMECLI="/usr/local/bin/smecli"
+
     SMEGUID="/usr/local/share/applications/com.github.gr00t-user-706.showmeeverything-gui-qml.desktop"
     SMEGUID_SRC="$SCRIPT_DIR/showmeeverything_gui/assets/com.github.gr00t-user-706.showmeeverything-gui-qml.desktop"
+
     SMEGUI="/usr/local/bin/smegui"
     SMEGUI_BIN_OLD="/usr/local/bin/showmeeverything_gui"
     SMEGUI_BIN_NEW="/usr/local/bin/showmeeverything_qml"
     SMEGUI_SRC="$SCRIPT_DIR/showmeeverything_gui/showmeeverything_qml"
+
     SMEGPYD="/usr/local/share/applications/com.github.gr00t-user-706.showmeeverything-gui-python.desktop"
     SMEGPYD_SRC="$SCRIPT_DIR/showmeeverything_gui/assets/com.github.gr00t-user-706.showmeeverything-gui-python.desktop"
     SMEGPY_SRC="$SCRIPT_DIR/showmeeverything_gui/showmeeverything_tk.py"
     SMEGPY="/usr/local/bin/smegpy"
     SMEGPY_BIN="/usr/local/bin/showmeeverything_tk"
-    GUI_DIR="$SCRIPT_DIR/showmeeverything_gui"
-}
 
-# --- Check root ---
-check_root() {
-    if [[ $EUID -ne 0 ]]; then
-        echo -e "${RED}Please run as root (sudo ./install)${NC}"
-        exit 1
-    fi
+    GUI_DIR="$SCRIPT_DIR/showmeeverything_gui"
 }
 
 # --- Header ---
 show_header() {
-    echo -e "${GREEN}Show Me Everything Installer${NC}"
-    echo -e "----------------------------------------"
-    echo -e "Core: CLI (${RED}required${NC})"
-    echo -e "${YELLOW}Optional: Python/Tk GUI, Qt GUI${NC}"
-    echo -e ""
+    echo -e "${GREEN}Show Me Everything Intelligent Installer${NC}"
+    echo "----------------------------------------"
+    echo -e "Environment: ${GREEN}$SME_ENVIRONMENT${NC}"
+
+    case "$SME_ENVIRONMENT" in
+        LINUX)
+            echo -e "Target: ${GREEN}Linux${NC}"
+            echo -e "GUI: ${YELLOW}supported when repository/dependencies permit${NC}"
+            ;;
+        TERMUX)
+            echo -e "Target: ${GREEN}Termux / Android${NC}"
+            echo -e "GUI: ${YELLOW}not applicable; CLI installation will be used${NC}"
+            ;;
+        *)
+            echo -e "${RED}Target: unsupported${NC}"
+            ;;
+    esac
+    echo ""
 }
 
-# --- Determine install mode (GOLDEN GATE) ---
-determine_install_mode() {
-    if [ ! -d "$GUI_DIR" ]; then
-        echo -e "${RED}FATAL: GUI source directory missing: $GUI_DIR${NC}"
-        echo -e "${RED}This install is incomplete or not a full repository clone.${NC}"
+# --- Unsupported environment ---
+check_supported_environment() {
+    if [ "$SME_ENVIRONMENT" = "UNSUPPORTED" ]; then
+        echo -e "${RED}Unsupported environment detected.${NC}"
+        echo -e "Show Me Everything currently supports:"
+        echo -e "  Linux"
+        echo -e "  Termux / Android"
         echo -e ""
-        echo -e "${YELLOW}Only the CLI can be installed at this time.${NC}"
-        echo -e "${YELLOW}The GUI components (Qt + Tk) and desktop entries will be skipped.${NC}"
-        echo -e ""
-
-        read -rp "Continue with CLI-only installation? [y/N]: " CONTINUE_CLI_ONLY
-
-        case "$CONTINUE_CLI_ONLY" in
-            [yY]|[yY][eE][sS])
-                echo -e "${YELLOW}Proceeding with CLI-only installation...${NC}"
-                INSTALL_MODE="cli_only"
-                ;;
-            *)
-                echo -e "${RED}Installation aborted.${NC}"
-                exit 0
-                ;;
-        esac
-    else
-        INSTALL_MODE="full"
-        echo -e "${GREEN}Full repository detected - will attempt all components.${NC}"
+        echo -e "${YELLOW}No files will be modified.${NC}"
+        exit 0
     fi
 }
 
-# --- Check existing installation ---
-check_existing_installation() {
-    if [ ! -f "${SMECLI_SRC}" ]; then
-        echo -e "${RED}ERROR: CLI core not found. Aborting.${NC}"
+# --- Root/privilege handling ---
+check_privileges() {
+    if [ "$SME_ENVIRONMENT" = "TERMUX" ]; then
+        return
+    fi
+
+    if [[ $EUID -ne 0 ]]; then
+        echo -e "${RED}Linux installation requires root privileges.${NC}"
+        echo -e "Run:"
+        echo -e "  sudo ./install"
         exit 1
     fi
+}
 
-    EXISTING_CLI="${SMECLI_BIN}"
-    NEW_CLI="$SMECLI_SRC"
+# --- Repository integrity: required CLI components ---
+check_cli_source() {
+    local module
+    local required_modules=(
+        "showMeEverything.zsh"
+        "showMeEverything.launcher"
+        "config.zsh"
+        "shell_searches.zsh"
+        "package_manager_searches.zsh"
+        "filesystem_searches.zsh"
+        "help.zsh"
+    )
 
-    if [ -f "$EXISTING_CLI" ]; then
-        echo -e "${YELLOW}Existing binary detected at $SMECLI_BIN.${NC}"
+    MISSING_CLI_COMPONENTS=()
+    CLI_SOURCE_COMPLETE=1
 
-        IS_OURS=0
-        SAME_HASH=0
-
-        if grep -Eq 'SME_SIGNATURE="?gr00t-user-706"?' "$EXISTING_CLI" 2>/dev/null; then
-            IS_OURS=1
-            echo -e "${GREEN}Recognized as Show Me Everything installation.${NC}"
-        else
-            echo -e "${YELLOW}WARNING: Existing file is NOT recognized as this project.${NC}"
+    for module in "${required_modules[@]}"; do
+        if [ ! -f "$SME_CLI_DIR/$module" ]; then
+            MISSING_CLI_COMPONENTS+=("$module")
+            CLI_SOURCE_COMPLETE=0
+        elif [ ! -r "$SME_CLI_DIR/$module" ]; then
+            MISSING_CLI_COMPONENTS+=("$module (not readable)")
+            CLI_SOURCE_COMPLETE=0
         fi
+    done
 
-        if command -v sha256sum >/dev/null 2>&1; then
-            EXISTING_HASH=$(sha256sum "$EXISTING_CLI" | awk '{print $1}')
-            NEW_HASH=$(sha256sum "$NEW_CLI" | awk '{print $1}')
-
-            if [ "$EXISTING_HASH" = "$NEW_HASH" ]; then
-                SAME_HASH=1
-                echo -e "${GREEN}Binary is identical to this version.${NC}"
-            else
-                echo -e "${YELLOW}Binary differs from this version.${NC}"
-            fi
-        else
-            echo -e "${YELLOW}sha256sum not available – skipping hash comparison.${NC}"
-        fi
-
-        echo -e ""
-
-        if [ $IS_OURS -eq 1 ] && [ $SAME_HASH -eq 1 ]; then
-            read -rp "Same version already installed. Reinstall anyway? [y/N]: " CONFIRM
-        elif [ $IS_OURS -eq 1 ]; then
-            read -rp "Update existing Show Me Everything installation? [Y/n]: " CONFIRM
-        else
-            read -rp "Overwrite unknown binary at this path? [y/N]: " CONFIRM
-        fi
-
-        case "$CONFIRM" in
-            [yY]|[yY][eE][sS])
-                echo -e "${GREEN}Continuing installation...${NC}"
-                ;;
-            *)
-                echo -e "Installation ${RED}aborted${NC}."
-                exit 0
-                ;;
-        esac
+    if [ "$CLI_SOURCE_COMPLETE" -eq 1 ]; then
+        echo -e "${GREEN}CLI repository components: complete.${NC}"
+    else
+        echo -e "${RED}CLI repository components: INCOMPLETE.${NC}"
+        for module in "${MISSING_CLI_COMPONENTS[@]}"; do
+            echo -e "  ${RED}missing: $module${NC}"
+        done
     fi
 }
 
-# --- Clean previous installation ---
+# --- Repository integrity: GUI components ---
+check_gui_source() {
+    MISSING_GUI_COMPONENTS=()
+    GUI_SOURCE_COMPLETE=0
+
+    if [ "$SME_ENVIRONMENT" != "LINUX" ]; then
+        echo -e "${YELLOW}GUI repository check: not required for Termux installation.${NC}"
+        return
+    fi
+
+    if [ ! -d "$GUI_DIR" ]; then
+        echo -e "${YELLOW}GUI repository directory not found: $GUI_DIR${NC}"
+        return
+    fi
+
+    local component
+    local required_gui_components=(
+        "showmeeverything_tk.py"
+        "showmeeverything_gui.pro"
+        "assets/com.github.gr00t-user-706.showmeeverything-gui-qml.desktop"
+        "assets/com.github.gr00t-user-706.showmeeverything-gui-python.desktop"
+        "assets/showMeEverything.png"
+        "src/main.cpp"
+        "src/searchbackend.cpp"
+        "src/searchbackend.h"
+        "qml/main.qml"
+    )
+
+    for component in "${required_gui_components[@]}"; do
+        if [ ! -f "$GUI_DIR/$component" ]; then
+            MISSING_GUI_COMPONENTS+=("$component")
+        fi
+    done
+
+    if [ "${#MISSING_GUI_COMPONENTS[@]}" -eq 0 ]; then
+        GUI_SOURCE_COMPLETE=1
+        echo -e "${GREEN}GUI repository components: complete.${NC}"
+    else
+        echo -e "${YELLOW}GUI repository components: incomplete.${NC}"
+        for component in "${MISSING_GUI_COMPONENTS[@]}"; do
+            echo -e "  ${YELLOW}missing: $component${NC}"
+        done
+    fi
+}
+
+# --- Determine installation mode ---
+determine_install_mode() {
+    if [ "$CLI_SOURCE_COMPLETE" -eq 0 ]; then
+        INSTALL_MODE="BROKEN"
+        echo -e "${RED}Installation state: BROKEN${NC}"
+        echo -e "${YELLOW}The CLI repository is incomplete.${NC}"
+        echo -e "${YELLOW}Recommended: re-clone the complete repository before installing.${NC}"
+        echo -e ""
+
+        read -rp "Continue with an incomplete installation anyway? [y/N]: " CONFIRM
+        case "$CONFIRM" in
+            [yY]|[yY][eE][sS])
+                echo -e "${YELLOW}Proceeding by user choice with BROKEN repository state.${NC}"
+                ;;
+            *)
+                echo -e "${YELLOW}Installation not continued. No installation changes were made.${NC}"
+                exit 0
+                ;;
+        esac
+        return
+    fi
+
+    if [ "$SME_ENVIRONMENT" = "TERMUX" ]; then
+        INSTALL_MODE="TERMUX"
+        echo -e "${GREEN}Installation state: TERMUX${NC}"
+        echo -e "${YELLOW}Termux detected. Installing CLI only.${NC}"
+        return
+    fi
+
+    if [ "$GUI_SOURCE_COMPLETE" -eq 1 ]; then
+        INSTALL_MODE="LINUX_FULL"
+        echo -e "${GREEN}Installation state: LINUX_FULL${NC}"
+        echo -e "${GREEN}Complete Linux CLI + GUI repository detected.${NC}"
+    else
+        INSTALL_MODE="LINUX_CLI_ONLY"
+        echo -e "${YELLOW}Installation state: LINUX_CLI_ONLY${NC}"
+        echo -e "${YELLOW}GUI components are not complete. CLI installation will proceed.${NC}"
+    fi
+}
+
+# --- Determine whether an existing file belongs to SME ---
+is_sme_file() {
+    local path="$1"
+
+    [ -e "$path" ] || [ -L "$path" ] || return 1
+
+    if [ -f "$path" ] && grep -Eq 'SME_SIGNATURE="?gr00t-user-706"?' "$path" 2>/dev/null; then
+        return 0
+    fi
+
+    return 1
+}
+
+# --- Compare an existing implementation to the repository ---
+implementation_matches_repo() {
+    local existing="$SMECLI_MODULE_DIR/showMeEverything.zsh"
+
+    [ -f "$existing" ] || return 1
+    [ -f "$SME_CLI_SRC" ] || return 1
+    command -v sha256sum >/dev/null 2>&1 || return 1
+
+    [ "$(sha256sum "$existing" | awk '{print $1}')" = \
+      "$(sha256sum "$SME_CLI_SRC" | awk '{print $1}')" ]
+}
+
+# --- Determine existing target ownership before overwriting ---
+check_target() {
+    local path="$1"
+    local label="$2"
+
+    if [ ! -e "$path" ] && [ ! -L "$path" ]; then
+        return
+    fi
+
+    if is_sme_file "$path"; then
+        echo -e "${GREEN}$label: existing SME file detected.${NC}"
+        return
+    fi
+
+    if [ -d "$path" ] && [ "$path" = "$SMECLI_MODULE_DIR" ]; then
+        if [ -f "$path/showMeEverything.zsh" ] && \
+           grep -Eq 'SME_SIGNATURE="?gr00t-user-706"?' "$path/showMeEverything.zsh" 2>/dev/null; then
+            echo -e "${GREEN}$label: existing SME installation directory detected.${NC}"
+            return
+        fi
+    fi
+
+    echo -e "${YELLOW}WARNING: $label exists and is not identified as an SME file.${NC}"
+    echo -e "  Path: $path"
+    CONFLICTS+=("$path")
+}
+
+# --- Inspect all paths the installation may overwrite ---
+inspect_targets() {
+    CONFLICTS=()
+
+    echo -e "${GREEN}[Targets] Inspecting existing installation paths...${NC}"
+
+    check_target "$SMECLI_BIN" "CLI launcher"
+    check_target "$SMECLI" "smecli link"
+    check_target "$SMECLI_MODULE_DIR" "CLI implementation directory"
+
+    if [ "$SME_ENVIRONMENT" = "LINUX" ]; then
+        check_target "$SMEGPY_BIN" "Python GUI binary"
+        check_target "$SMEGPY" "Python GUI link"
+        check_target "$SMEGUI_BIN_OLD" "Legacy Qt GUI binary"
+        check_target "$SMEGUI_BIN_NEW" "Qt GUI binary"
+        check_target "$SMEGUI" "Qt GUI link"
+        check_target "$SMEGUID" "Qt desktop entry"
+        check_target "$SMEGPYD" "Python desktop entry"
+        check_target "$SMEICON" "SME icon"
+    fi
+
+    if [ "${#CONFLICTS[@]}" -eq 0 ]; then
+        echo -e "${GREEN}No unrelated target conflicts detected.${NC}"
+        return
+    fi
+
+    echo -e ""
+    echo -e "${YELLOW}The following existing paths are not identified as SME-owned:${NC}"
+    for path in "${CONFLICTS[@]}"; do
+        echo -e "  ${YELLOW}- $path${NC}"
+    done
+    echo -e ""
+    echo -e "${YELLOW}These paths may be overwritten by this installation.${NC}"
+
+    read -rp "Continue and allow these paths to be overwritten? [y/N]: " CONFIRM
+    case "$CONFIRM" in
+        [yY]|[yY][eE][sS])
+            echo -e "${YELLOW}Continuing by user choice.${NC}"
+            ;;
+        *)
+            echo -e "${YELLOW}Installation not continued. No installation changes were made.${NC}"
+            exit 0
+            ;;
+    esac
+}
+
+# --- Check existing installation and hash ---
+check_existing_installation() {
+    local existing_impl="$SMECLI_MODULE_DIR/showMeEverything.zsh"
+
+    if [ ! -e "$SMECLI_BIN" ] && [ ! -e "$existing_impl" ]; then
+        echo -e "${GREEN}No previous SME installation detected.${NC}"
+        return
+    fi
+
+    echo -e "${YELLOW}Existing Show Me Everything installation detected.${NC}"
+
+    IS_OURS=0
+    SAME_HASH=0
+
+    if is_sme_file "$existing_impl"; then
+        IS_OURS=1
+        echo -e "${GREEN}Installed implementation recognized by SME signature.${NC}"
+    elif is_sme_file "$SMECLI_BIN"; then
+        IS_OURS=1
+        echo -e "${GREEN}Installed launcher recognized by SME signature.${NC}"
+    fi
+
+    if implementation_matches_repo; then
+        SAME_HASH=1
+        echo -e "${GREEN}Installed CLI implementation matches repository SHA-256.${NC}"
+    elif [ -f "$existing_impl" ] && command -v sha256sum >/dev/null 2>&1; then
+        echo -e "${YELLOW}Installed CLI implementation differs from repository SHA-256.${NC}"
+    fi
+
+    echo ""
+
+    if [ "$IS_OURS" -eq 1 ] && [ "$SAME_HASH" -eq 1 ]; then
+        read -rp "Same CLI implementation already installed. Reinstall anyway? [y/N]: " CONFIRM
+    elif [ "$IS_OURS" -eq 1 ]; then
+        read -rp "Update existing Show Me Everything installation? [Y/n]: " CONFIRM
+        [ -z "$CONFIRM" ] && CONFIRM="y"
+    else
+        read -rp "Existing installation is not identified as SME. Continue? [y/N]: " CONFIRM
+    fi
+
+    case "$CONFIRM" in
+        [yY]|[yY][eE][sS]) ;;
+        *) echo -e "${YELLOW}Installation not continued.${NC}"; exit 0 ;;
+    esac
+}
+
+# --- Clean only known SME installation targets ---
 clean_previous_install() {
-    echo -e "${YELLOW}Cleaning previous installation...${NC}"
+    echo -e "${YELLOW}[Cleanup] Removing previous SME-owned targets...${NC}"
 
-    rm -f "$SMECLI_BIN"
-    rm -f "$SMECLI"
-    rm -f "$SMEGPY_BIN"
-    rm -f "$SMEGPY"
-    rm -f "$SMEGUI_BIN_OLD" "$SMEGUI_BIN_NEW"
-    rm -f "$SMEGUI"
-    rm -f "$SMEGUID"
-    rm -f "$SMEGPYD"
-    rm -f "$SMEICON"
+    rm -f "$SMECLI_BIN" "$SMECLI"
+
+    if [ -d "$SMECLI_MODULE_DIR" ]; then
+        rm -rf "$SMECLI_MODULE_DIR"
+    fi
+
+    if [ "$SME_ENVIRONMENT" = "LINUX" ]; then
+        rm -f "$SMEGPY_BIN" "$SMEGPY"
+        rm -f "$SMEGUI_BIN_OLD" "$SMEGUI_BIN_NEW" "$SMEGUI"
+        rm -f "$SMEGUID" "$SMEGPYD" "$SMEICON"
+    fi
 }
 
-# --- Install CLI (ALWAYS runs) ---
-install_cli() {
-    echo -e "${GREEN}[CLI] Installing core...${NC}"
+# --- Dependency package manager detection ---
+detect_package_manager() {
+    if [ "${SME_ENVIRONMENT:-}" = "TERMUX" ] && command -v pkg >/dev/null 2>&1; then
+        SME_PKG_MANAGER="pkg"
+        return
+    fi
 
-    mkdir -p /usr/local/share/icons/
-    mkdir -p /usr/local/share/applications/
-
-    install -m 555 "$SMECLI_SRC" "$SMECLI_BIN"
-    ln -sf "$SMECLI_BIN" "$SMECLI"
+    if command -v apt-get >/dev/null 2>&1; then
+        SME_PKG_MANAGER="apt-get"
+    elif command -v dnf >/dev/null 2>&1; then
+        SME_PKG_MANAGER="dnf"
+    elif command -v pacman >/dev/null 2>&1; then
+        SME_PKG_MANAGER="pacman"
+    elif command -v zypper >/dev/null 2>&1; then
+        SME_PKG_MANAGER="zypper"
+    elif command -v apk >/dev/null 2>&1; then
+        SME_PKG_MANAGER="apk"
+    elif command -v pkg >/dev/null 2>&1; then
+        SME_PKG_MANAGER="pkg"
+    else
+        SME_PKG_MANAGER=""
+    fi
 }
 
-# --- Check and prep Python GUI ---
+# --- Install one missing dependency and recheck it ---
+install_dependency() {
+    local dependency="$1"
+    local package="$2"
+
+    echo -e "${YELLOW}$dependency is missing.${NC}"
+
+    read -rp "Install $dependency now? [Y/n]: " CONFIRM
+    case "$CONFIRM" in
+        [nN]|[nN][oO])
+            echo -e "${YELLOW}Skipping $dependency.${NC}"
+            return 1
+            ;;
+    esac
+
+    case "$SME_PKG_MANAGER" in
+        apt-get)
+            apt-get update
+            apt-get install -y "$package"
+            ;;
+        dnf)
+            dnf install -y "$package"
+            ;;
+        pacman)
+            pacman -Sy --noconfirm --needed "$package"
+            ;;
+        zypper)
+            zypper --non-interactive install "$package"
+            ;;
+        apk)
+            apk add "$package"
+            ;;
+        pkg)
+            pkg install -y "$package"
+            ;;
+        *)
+            echo -e "${RED}No supported package manager detected for automatic installation.${NC}"
+            return 1
+            ;;
+    esac
+}
+
+# --- Check required shell and offer automatic remediation ---
+check_zsh() {
+    echo -e "${GREEN}[Shell] Checking Zsh...${NC}"
+
+    if command -v zsh >/dev/null 2>&1; then
+        echo -e "${GREEN}Zsh detected: $(command -v zsh)${NC}"
+        return 0
+    fi
+
+    detect_package_manager
+
+    if [ "$SME_ENVIRONMENT" = "TERMUX" ]; then
+        install_dependency "Zsh" "zsh" || return 1
+    else
+        install_dependency "Zsh" "zsh" || return 1
+    fi
+
+    if command -v zsh >/dev/null 2>&1; then
+        echo -e "${GREEN}Zsh detected after dependency installation.${NC}"
+        return 0
+    fi
+
+    echo -e "${YELLOW}Zsh is still unavailable. CLI installation may not run correctly.${NC}"
+    return 1
+}
+
+# --- Python GUI dependency check/remediation ---
 check_python_gui() {
     PYTHON_TK_OK=0
 
     echo -e "${GREEN}[Python GUI] Checking dependencies...${NC}"
 
-    if command -v python3 >/dev/null 2>&1; then
+    if ! command -v python3 >/dev/null 2>&1; then
+        detect_package_manager
+        echo -e "${YELLOW}python3 not found.${NC}"
+
+        local py_package="python3"
+        if install_dependency "Python 3" "$py_package"; then
+            command -v python3 >/dev/null 2>&1 || return
+        else
+            return
+        fi
+    fi
+
+    if python3 -c "import tkinter" >/dev/null 2>&1; then
+        PYTHON_TK_OK=1
+        echo -e "${GREEN}Python + tkinter detected.${NC}"
+        return
+    fi
+
+    detect_package_manager
+
+    local tk_package="python3-tk"
+    case "$SME_PKG_MANAGER" in
+        dnf) tk_package="python3-tkinter" ;;
+        pacman) tk_package="tk" ;;
+        apk) tk_package="py3-tkinter" ;;
+        pkg) tk_package="python-tkinter" ;;
+    esac
+
+    if install_dependency "Python tkinter" "$tk_package"; then
         if python3 -c "import tkinter" >/dev/null 2>&1; then
             PYTHON_TK_OK=1
-            echo -e "${GREEN}Python + tkinter detected."
+            echo -e "${GREEN}Python + tkinter detected after installation.${NC}"
         else
-            echo -e "${YELLOW}python3 found but tkinter missing.${NC}"
+            echo -e "${YELLOW}Python + tkinter is still unavailable.${NC}"
         fi
-    else
-        echo -e "${YELLOW}python3 not found.${NC}"
     fi
+}
+
+# --- Qt dependency check/remediation ---
+check_qt_gui() {
+    QT_DEPS_OK=1
+
+    echo -e "${GREEN}[Qt GUI] Checking dependencies...${NC}"
+
+    detect_package_manager
+
+    if ! command -v qmake6 >/dev/null 2>&1; then
+        local qt_package="qt6-base-dev"
+        case "$SME_PKG_MANAGER" in
+            dnf) qt_package="qt6-qtbase-devel" ;;
+            pacman) qt_package="qt6-base" ;;
+            zypper) qt_package="libqt6-qtbase-devel" ;;
+            apk) qt_package="qt6-qtbase-dev" ;;
+        esac
+
+        if ! install_dependency "Qt 6 / qmake6" "$qt_package"; then
+            QT_DEPS_OK=0
+        fi
+    fi
+
+    if ! command -v make >/dev/null 2>&1; then
+        if ! install_dependency "make" "make"; then
+            QT_DEPS_OK=0
+        fi
+    fi
+
+    if command -v qmake6 >/dev/null 2>&1 && command -v make >/dev/null 2>&1; then
+        QT_DEPS_OK=1
+        echo -e "${GREEN}Qt build dependencies detected.${NC}"
+    else
+        QT_DEPS_OK=0
+        echo -e "${YELLOW}Qt build dependencies remain incomplete.${NC}"
+    fi
+}
+
+# --- Install CLI ---
+install_cli() {
+    local module
+
+    echo -e "${GREEN}[CLI] Installing core...${NC}"
+
+    mkdir -p "$(dirname "$SMECLI_BIN")" "$SMECLI_MODULE_DIR"
+    mkdir -p /usr/local/share/icons/ /usr/local/share/applications/
+
+    for module in \
+        showMeEverything.zsh \
+        config.zsh \
+        shell_searches.zsh \
+        package_manager_searches.zsh \
+        filesystem_searches.zsh \
+        help.zsh
+    do
+        if [ -f "$SME_CLI_DIR/$module" ]; then
+            install -m 644 "$SME_CLI_DIR/$module" "$SMECLI_MODULE_DIR/$module"
+        fi
+    done
+
+    # Generate the environment-correct public launcher.
+    if [ -f "$SME_LAUNCHER_SRC" ]; then
+        sed "1c\\#!$SME_SHEBANG" "$SME_LAUNCHER_SRC" > "$SMECLI_BIN"
+        chmod 555 "$SMECLI_BIN"
+    else
+        echo -e "${RED}Launcher template missing: $SME_LAUNCHER_SRC${NC}"
+        return 1
+    fi
+
+    ln -sf "$SMECLI_BIN" "$SMECLI"
+
+    echo -e "${GREEN}CLI installed.${NC}"
 }
 
 # --- Install Python GUI ---
 install_python_gui() {
-    echo "Installing Python GUI..."
+    echo -e "${GREEN}[Python GUI] Installing...${NC}"
     install -m 555 "$SMEGPY_SRC" "$SMEGPY_BIN"
     ln -sf "$SMEGPY_BIN" "$SMEGPY"
     PYTHON_INSTALLED=1
 }
 
-# --- Check and prep Qt GUI ---
-check_qt_gui() {
-    QT_DEPS_OK=1
-    QT_BUILD_OK=0
-
-    echo -e "${GREEN}[Qt GUI] Checking dependencies...${NC}"
-
-    if ! command -v qmake6 >/dev/null 2>&1; then
-        echo -e "${YELLOW}qmake6 not found.${NC}"
-        QT_DEPS_OK=0
-    fi
-
-    if ! command -v make >/dev/null 2>&1; then
-        echo -e "${YELLOW}make not found.${NC}"
-        QT_DEPS_OK=0
-    fi
-}
-
 # --- Build Qt GUI ---
 build_qt_gui() {
-    if [ "$QT_DEPS_OK" -eq 1 ]; then
-        echo -e "Attempting Qt build..."
+    QT_BUILD_OK=0
 
-        cd "$SCRIPT_DIR/showmeeverything_gui"
+    if [ "$QT_DEPS_OK" -eq 1 ]; then
+        echo -e "${GREEN}[Qt GUI] Building...${NC}"
+
+        cd "$GUI_DIR"
 
         rm -f Makefile qrc_resources.cpp moc_*.cpp *.o showmeeverything_gui showmeeverything_qml 2>/dev/null || true
 
@@ -233,19 +672,19 @@ build_qt_gui() {
             QT_BUILD_OK=1
             echo -e "${GREEN}Qt GUI built successfully.${NC}"
         else
-            echo -e "${YELLOW}Qt build failed.${NC}"
+            echo -e "${YELLOW}Qt build failed. CLI installation will remain intact.${NC}"
         fi
 
         cd "$SCRIPT_DIR"
     else
-        echo -e "${YELLOW}Skipping Qt build due to missing dependencies.${NC}"
+        echo -e "${YELLOW}Skipping Qt build because dependencies remain unavailable.${NC}"
     fi
 }
 
 # --- Install Qt GUI ---
 install_qt_gui() {
     if [ "$QT_BUILD_OK" -eq 1 ] && [ -f "$SMEGUI_SRC" ]; then
-        echo -e "${GREEN}Installing Qt GUI...${NC}"
+        echo -e "${GREEN}[Qt GUI] Installing...${NC}"
         install -m 555 "$SMEGUI_SRC" "$SMEGUI_BIN_NEW"
         ln -sf "$SMEGUI_BIN_NEW" "$SMEGUI"
         QT_INSTALLED=1
@@ -254,149 +693,212 @@ install_qt_gui() {
     fi
 }
 
-# --- Install desktop entries and icons ---
+# --- Install desktop entries and icon ---
 install_desktop_entries() {
     echo -e "${GREEN}[Desktop] Installing entries...${NC}"
 
-    # Install icon if it exists
     if [ -f "$SMEICON_SRC" ]; then
         install -m 644 "$SMEICON_SRC" "$SMEICON"
     else
-        echo -e "${YELLOW}Icon source missing - skipping icon installation${NC}"
+        echo -e "${YELLOW}Icon source missing - skipping icon installation.${NC}"
     fi
 
-    # Install Qt desktop entry if Qt GUI was installed
     if [ "$QT_INSTALLED" -eq 1 ] && [ -f "$SMEGUID_SRC" ]; then
         if command -v desktop-file-install >/dev/null 2>&1; then
-            desktop-file-install -m 644 --dir /usr/local/share/applications/  "$SMEGUID_SRC"
+            desktop-file-install -m 644 --dir /usr/local/share/applications/ "$SMEGUID_SRC"
         else
-            echo -e "${YELLOW}desktop-file-install not found, using raw install (no validation)${NC}"
+            echo -e "${YELLOW}desktop-file-install not found, using raw install (no validation).${NC}"
             install -m 644 "$SMEGUID_SRC" /usr/local/share/applications/
         fi
-    elif [ "$INSTALL_MODE" = "full" ]; then
-        echo -e "${YELLOW}Skipping Qt desktop entry (Qt GUI not installed).${NC}"
+    else
+        echo -e "${YELLOW}Skipping Qt desktop entry.${NC}"
     fi
 
-    # Install Python desktop entry if Python GUI was installed
     if [ "$PYTHON_INSTALLED" -eq 1 ] && [ -f "$SMEGPYD_SRC" ]; then
         if command -v desktop-file-install >/dev/null 2>&1; then
             desktop-file-install -m 644 --dir /usr/local/share/applications/ "$SMEGPYD_SRC"
         else
-            echo -e "${YELLOW}desktop-file-install not found, using raw install (no validation)${NC}"
+            echo -e "${YELLOW}desktop-file-install not found, using raw install (no validation).${NC}"
             install -m 644 "$SMEGPYD_SRC" /usr/local/share/applications/
         fi
-    elif [ "$INSTALL_MODE" = "full" ]; then
-        echo -e "${YELLOW}Skipping Python desktop entry (Python GUI not installed).${NC}"
+    else
+        echo -e "${YELLOW}Skipping Python desktop entry.${NC}"
     fi
 
-    # Update desktop database if available
     if command -v update-desktop-database >/dev/null 2>&1; then
         update-desktop-database
     fi
 }
 
-set_ownership() {
-    chown -R "$SUDO_USER":"$SUDO_USER" "$SCRIPT_DIR"
+# --- Final verification ---
+verify_installation() {
+    local module
+    local failed=0
+
+    echo -e "${GREEN}[Verify] Checking installed CLI...${NC}"
+
+    [ -x "$SMECLI_BIN" ] || {
+        echo -e "${RED}Missing or non-executable launcher: $SMECLI_BIN${NC}"
+        failed=1
+    }
+
+    [ -L "$SMECLI" ] || {
+        echo -e "${RED}Missing smecli symlink: $SMECLI${NC}"
+        failed=1
+    }
+
+    for module in \
+        showMeEverything.zsh \
+        config.zsh \
+        shell_searches.zsh \
+        package_manager_searches.zsh \
+        filesystem_searches.zsh \
+        help.zsh
+    do
+        if [ ! -f "$SMECLI_MODULE_DIR/$module" ]; then
+            echo -e "${RED}Missing installed CLI module: $module${NC}"
+            failed=1
+        fi
+    done
+
+    if [ "$failed" -eq 0 ]; then
+        echo -e "${GREEN}CLI installation structure verified.${NC}"
+    else
+        echo -e "${RED}CLI installation verification found errors.${NC}"
+    fi
+
+    if [ "$failed" -ne 0 ]; then
+        return 1
+    fi
+
+    if command -v zsh >/dev/null 2>&1; then
+        if "$SMECLI_BIN" --help >/dev/null 2>&1; then
+            echo -e "${GREEN}CLI runtime verification passed.${NC}"
+        else
+            echo -e "${YELLOW}CLI runtime verification could not complete '--help'.${NC}"
+            echo -e "${YELLOW}The installation structure is present, but runtime verification failed.${NC}"
+        fi
+    else
+        echo -e "${YELLOW}Zsh unavailable; runtime verification skipped.${NC}"
+    fi
+
+    return 0
 }
 
-# --- Show summary based on install mode ---
-show_summary() {
-    clear
-    echo -e ""
-    echo -e "========== INSTALL SUMMARY =========="
-
-    case "$INSTALL_MODE" in
-        cli_only)
-            echo -e "Mode: ${YELLOW}CLI-ONLY${NC} (repository incomplete)"
-            echo -e "CLI: ${GREEN}INSTALLED ${NC} ✓"
-            echo -e "Python GUI: ${RED}SKIPPED${NC} (missing GUI directory)"
-            echo -e "Qt GUI: ${RED}SKIPPED ${NC} (missing GUI directory)"
-            echo -e ""
-            echo -e "${YELLOW}What you can do:${NC}"
-            echo -e "  • CLI is fully functional at 'smecli' or 'showMeEverything'"
-            echo -e "  • To get GUI components, clone the complete repository with:"
-            echo -e "    git clone <full-repo-url> (includes showmeeverything_gui/)"
-            echo -e "  • Then re-run 'sudo ./install' to add GUI features"
-            ;;
-        full)
-            echo -e "Mode: ${GREEN}FULL${NC} (complete repository)"
-            echo -e "CLI: ${GREEN}INSTALLED ${NC}✓"
-
-            if [ "$PYTHON_INSTALLED" -eq 1 ]; then
-                echo -e "Python GUI: ${GREEN}INSTALLED${NC} ✓"
-            else
-                echo -e "Python GUI: ${RED}SKIPPED${NC} ✗"
-                echo -e "  → Missing: python3 or tkinter"
-                echo -e "  → Fix: sudo apt install python3-tk (Debian/Ubuntu)"
-                echo -e "      or sudo dnf install python3-tkinter (Fedora)"
-            fi
-
-            if [ "$QT_INSTALLED" -eq 1 ]; then
-                echo -e "Qt GUI: ${GREEN}INSTALLED${NC} ✓"
-            else
-                echo -e "Qt GUI: ${RED}SKIPPED${NC} ✗"
-                echo -e "  → Missing: qmake6 or make"
-                echo -e "  → Fix: sudo apt install qt6-base-dev make (Debian/Ubuntu)"
-                echo -e "      or sudo dnf install qt6-qtbase-devel make (Fedora)"
-            fi
-            ;;
-    esac
-
-    echo -e "===================================="
-    echo -e ""
-    echo -e "${GREEN}Installation complete!${NC}"
-
-    if [ "$INSTALL_MODE" = "cli_only" ]; then
-        echo -e "${YELLOW}Remember: Run this installer again from the full repo to get GUI features.${NC}"
+# --- Ownership of repository remains with invoking user on Linux ---
+set_ownership() {
+    if [ "$SME_ENVIRONMENT" = "LINUX" ] \
+        && [ -n "${SUDO_USER:-}" ] \
+        && id "$SUDO_USER" >/dev/null 2>&1; then
+        chown -R "$SUDO_USER":"$SUDO_USER" "$SCRIPT_DIR"
     fi
 }
 
-# --- Main execution flow using case statement ---
+# --- Summary ---
+show_summary() {
+    clear
+    echo ""
+    echo "========== INSTALL SUMMARY =========="
+    echo -e "Environment: ${GREEN}$SME_ENVIRONMENT${NC}"
+    echo -e "Mode: ${GREEN}$INSTALL_MODE${NC}"
+
+    if [ "$CLI_SOURCE_COMPLETE" -eq 1 ]; then
+        echo -e "CLI repository: ${GREEN}COMPLETE${NC}"
+    else
+        echo -e "CLI repository: ${RED}INCOMPLETE${NC}"
+    fi
+
+    echo -e "CLI: ${GREEN}INSTALLED${NC} ✓"
+
+    if [ "$SME_ENVIRONMENT" = "TERMUX" ]; then
+        echo -e "GUI: ${YELLOW}NOT APPLICABLE${NC}"
+    else
+        if [ "$PYTHON_INSTALLED" -eq 1 ]; then
+            echo -e "Python GUI: ${GREEN}INSTALLED${NC} ✓"
+        else
+            echo -e "Python GUI: ${YELLOW}SKIPPED${NC}"
+        fi
+
+        if [ "$QT_INSTALLED" -eq 1 ]; then
+            echo -e "Qt GUI: ${GREEN}INSTALLED${NC} ✓"
+        else
+            echo -e "Qt GUI: ${YELLOW}SKIPPED${NC}"
+        fi
+    fi
+
+    echo ""
+    echo "Commands:"
+    echo "  smecli"
+    echo "  showMeEverything"
+    echo ""
+    echo "CLI implementation:"
+    echo "  $SMECLI_MODULE_DIR"
+    echo ""
+    echo "Public launcher:"
+    echo "  $SMECLI_BIN"
+    echo "===================================="
+    echo ""
+
+    if [ "$INSTALL_MODE" = "BROKEN" ]; then
+        echo -e "${YELLOW}WARNING: This installation was created from an incomplete repository.${NC}"
+        echo -e "${YELLOW}Re-clone the complete repository and reinstall to restore missing components.${NC}"
+    else
+        echo -e "${GREEN}Installation complete.${NC}"
+    fi
+}
+
+# --- Main ---
 main() {
     clear
-    # Setup phase (always runs)
+
     detect_shell
+    detect_environment
+    check_supported_environment
     define_paths
-    check_root
+    check_privileges
     show_header
 
-    # Gate phase (determines install mode)
+    # Repository inspection always occurs, regardless of environment.
+    check_cli_source
+    check_gui_source
     determine_install_mode
 
-    # Pre-installation phase (always runs)
+    # Target inspection occurs before anything is removed or overwritten.
+    inspect_targets
     check_existing_installation
+
+    # Required CLI dependency: offer install, recheck, then continue.
+    if ! check_zsh; then
+        echo -e "${YELLOW}Zsh is still unavailable.${NC}"
+        echo -e "${YELLOW}The CLI may be installed structurally, but it cannot be runtime-tested.${NC}"
+    fi
+
     clean_previous_install
+    install_cli
 
-    # Installation phase based on mode
     case "$INSTALL_MODE" in
-        cli_only)
-            # CLI only - install just the core
-            install_cli
-            ;;
-
-        full)
-            # Full install - attempt everything
-            install_cli
-
-            # Python GUI
+        LINUX_FULL)
             check_python_gui
-            if [ $PYTHON_TK_OK -eq 1 ]; then
+            if [ "$PYTHON_TK_OK" -eq 1 ]; then
                 install_python_gui
             fi
 
-            # Qt GUI
             check_qt_gui
             build_qt_gui
             install_qt_gui
-
-            # Desktop entries (only if at least one GUI installed or icon exists)
             install_desktop_entries
             ;;
+        LINUX_CLI_ONLY|BROKEN)
+            echo -e "${YELLOW}Skipping GUI installation for mode $INSTALL_MODE.${NC}"
+            ;;
+        TERMUX)
+            echo -e "${YELLOW}Termux installation: GUI components are not installed.${NC}"
+            ;;
     esac
+
     set_ownership
-    # Summary phase (always runs)
+    verify_installation || true
     show_summary
 }
 
-# --- Run the main function ---
 main
