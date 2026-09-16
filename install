@@ -17,14 +17,12 @@ INSTALL_MODE=""
 SME_ENVIRONMENT=""
 SME_SHEBANG=""
 CLI_SOURCE_COMPLETE=1
-GUI_SOURCE_COMPLETE=0
 PYTHON_TK_OK=0
 PYTHON_INSTALLED=0
 QT_DEPS_OK=0
 QT_BUILD_OK=0
 QT_INSTALLED=0
 MISSING_CLI_COMPONENTS=()
-MISSING_GUI_COMPONENTS=()
 CONFLICTS=()
 SUDO_USER="${SUDO_USER:-}"
 
@@ -88,25 +86,6 @@ define_paths() {
         SMECLI="/usr/local/bin/smecli"
         SMECLI_MODULE_DIR="/usr/local/lib/showMeEverything"
     fi
-
-    SMEICON_SRC="$SCRIPT_DIR/showmeeverything_gui/assets/showMeEverything.png"
-    SMEICON="/usr/local/share/icons/showMeEverything.png"
-
-    SMEGUID="/usr/local/share/applications/com.github.gr00t-user-706.showmeeverything-gui-qml.desktop"
-    SMEGUID_SRC="$SCRIPT_DIR/showmeeverything_gui/assets/com.github.gr00t-user-706.showmeeverything-gui-qml.desktop"
-
-    SMEGUI="/usr/local/bin/smegui"
-    SMEGUI_BIN_OLD="/usr/local/bin/showmeeverything_gui"
-    SMEGUI_BIN_NEW="/usr/local/bin/showmeeverything_qml"
-    SMEGUI_SRC="$SCRIPT_DIR/showmeeverything_gui/showmeeverything_qml"
-
-    SMEGPYD="/usr/local/share/applications/com.github.gr00t-user-706.showmeeverything-gui-python.desktop"
-    SMEGPYD_SRC="$SCRIPT_DIR/showmeeverything_gui/assets/com.github.gr00t-user-706.showmeeverything-gui-python.desktop"
-    SMEGPY_SRC="$SCRIPT_DIR/showmeeverything_gui/showmeeverything_tk.py"
-    SMEGPY="/usr/local/bin/smegpy"
-    SMEGPY_BIN="/usr/local/bin/showmeeverything_tk"
-
-    GUI_DIR="$SCRIPT_DIR/showmeeverything_gui"
 }
 
 # --- Header ---
@@ -118,7 +97,7 @@ show_header() {
     case "$SME_ENVIRONMENT" in
         LINUX)
             echo -e "Target: ${GREEN}Linux${NC}"
-            echo -e "GUI: ${YELLOW}supported when repository/dependencies permit${NC}"
+            echo -e "GUI: ${YELLOW}not installed in this pass${NC}"
             ;;
         TERMUX)
             echo -e "Target: ${GREEN}Termux / Android${NC}"
@@ -194,51 +173,6 @@ check_cli_source() {
     fi
 }
 
-# --- Repository integrity: GUI components ---
-check_gui_source() {
-    MISSING_GUI_COMPONENTS=()
-    GUI_SOURCE_COMPLETE=0
-
-    if [ "$SME_ENVIRONMENT" != "LINUX" ]; then
-        echo -e "${YELLOW}GUI repository check: not required for Termux installation.${NC}"
-        return
-    fi
-
-    if [ ! -d "$GUI_DIR" ]; then
-        echo -e "${YELLOW}GUI repository directory not found: $GUI_DIR${NC}"
-        return
-    fi
-
-    local component
-    local required_gui_components=(
-        "showmeeverything_tk.py"
-        "showmeeverything_gui.pro"
-        "assets/com.github.gr00t-user-706.showmeeverything-gui-qml.desktop"
-        "assets/com.github.gr00t-user-706.showmeeverything-gui-python.desktop"
-        "assets/showMeEverything.png"
-        "src/main.cpp"
-        "src/searchbackend.cpp"
-        "src/searchbackend.h"
-        "qml/main.qml"
-    )
-
-    for component in "${required_gui_components[@]}"; do
-        if [ ! -f "$GUI_DIR/$component" ]; then
-            MISSING_GUI_COMPONENTS+=("$component")
-        fi
-    done
-
-    if [ "${#MISSING_GUI_COMPONENTS[@]}" -eq 0 ]; then
-        GUI_SOURCE_COMPLETE=1
-        echo -e "${GREEN}GUI repository components: complete.${NC}"
-    else
-        echo -e "${YELLOW}GUI repository components: incomplete.${NC}"
-        for component in "${MISSING_GUI_COMPONENTS[@]}"; do
-            echo -e "  ${YELLOW}missing: $component${NC}"
-        done
-    fi
-}
-
 # --- Determine installation mode ---
 determine_install_mode() {
     if [ "$CLI_SOURCE_COMPLETE" -eq 0 ]; then
@@ -268,15 +202,9 @@ determine_install_mode() {
         return
     fi
 
-    if [ "$GUI_SOURCE_COMPLETE" -eq 1 ]; then
-        INSTALL_MODE="LINUX_FULL"
-        echo -e "${GREEN}Installation state: LINUX_FULL${NC}"
-        echo -e "${GREEN}Complete Linux CLI + GUI repository detected.${NC}"
-    else
-        INSTALL_MODE="LINUX_CLI_ONLY"
-        echo -e "${YELLOW}Installation state: LINUX_CLI_ONLY${NC}"
-        echo -e "${YELLOW}GUI components are not complete. CLI installation will proceed.${NC}"
-    fi
+    INSTALL_MODE="LINUX_CLI"
+    echo -e "${GREEN}Installation state: LINUX_CLI${NC}"
+    echo -e "${YELLOW}CLI installation selected. GUI installation is deferred.${NC}"
 }
 
 # --- Determine whether an existing file belongs to SME ---
@@ -340,17 +268,6 @@ inspect_targets() {
     check_target "$SMECLI_BIN" "CLI launcher"
     check_target "$SMECLI" "smecli link"
     check_target "$SMECLI_MODULE_DIR" "CLI implementation directory"
-
-    if [ "$SME_ENVIRONMENT" = "LINUX" ]; then
-        check_target "$SMEGPY_BIN" "Python GUI binary"
-        check_target "$SMEGPY" "Python GUI link"
-        check_target "$SMEGUI_BIN_OLD" "Legacy Qt GUI binary"
-        check_target "$SMEGUI_BIN_NEW" "Qt GUI binary"
-        check_target "$SMEGUI" "Qt GUI link"
-        check_target "$SMEGUID" "Qt desktop entry"
-        check_target "$SMEGPYD" "Python desktop entry"
-        check_target "$SMEICON" "SME icon"
-    fi
 
     if [ "${#CONFLICTS[@]}" -eq 0 ]; then
         echo -e "${GREEN}No unrelated target conflicts detected.${NC}"
@@ -432,12 +349,6 @@ clean_previous_install() {
     if [ -d "$SMECLI_MODULE_DIR" ]; then
         rm -rf "$SMECLI_MODULE_DIR"
     fi
-
-    if [ "$SME_ENVIRONMENT" = "LINUX" ]; then
-        rm -f "$SMEGPY_BIN" "$SMEGPY"
-        rm -f "$SMEGUI_BIN_OLD" "$SMEGUI_BIN_NEW" "$SMEGUI"
-        rm -f "$SMEGUID" "$SMEGPYD" "$SMEICON"
-    fi
 }
 
 # --- Dependency package manager detection ---
@@ -517,100 +428,15 @@ check_zsh() {
 
     detect_package_manager
 
-    if [ "$SME_ENVIRONMENT" = "TERMUX" ]; then
-        install_dependency "Zsh" "zsh" || return 1
-    else
-        install_dependency "Zsh" "zsh" || return 1
-    fi
-
-    if command -v zsh >/dev/null 2>&1; then
-        echo -e "${GREEN}Zsh detected after dependency installation.${NC}"
-        return 0
+    if install_dependency "Zsh" "zsh"; then
+        if command -v zsh >/dev/null 2>&1; then
+            echo -e "${GREEN}Zsh detected after dependency installation.${NC}"
+            return 0
+        fi
     fi
 
     echo -e "${YELLOW}Zsh is still unavailable. CLI installation may not run correctly.${NC}"
     return 1
-}
-
-# --- Python GUI dependency check/remediation ---
-check_python_gui() {
-    PYTHON_TK_OK=0
-
-    echo -e "${GREEN}[Python GUI] Checking dependencies...${NC}"
-
-    if ! command -v python3 >/dev/null 2>&1; then
-        detect_package_manager
-        echo -e "${YELLOW}python3 not found.${NC}"
-
-        local py_package="python3"
-        if install_dependency "Python 3" "$py_package"; then
-            command -v python3 >/dev/null 2>&1 || return
-        else
-            return
-        fi
-    fi
-
-    if python3 -c "import tkinter" >/dev/null 2>&1; then
-        PYTHON_TK_OK=1
-        echo -e "${GREEN}Python + tkinter detected.${NC}"
-        return
-    fi
-
-    detect_package_manager
-
-    local tk_package="python3-tk"
-    case "$SME_PKG_MANAGER" in
-        dnf) tk_package="python3-tkinter" ;;
-        pacman) tk_package="tk" ;;
-        apk) tk_package="py3-tkinter" ;;
-        pkg) tk_package="python-tkinter" ;;
-    esac
-
-    if install_dependency "Python tkinter" "$tk_package"; then
-        if python3 -c "import tkinter" >/dev/null 2>&1; then
-            PYTHON_TK_OK=1
-            echo -e "${GREEN}Python + tkinter detected after installation.${NC}"
-        else
-            echo -e "${YELLOW}Python + tkinter is still unavailable.${NC}"
-        fi
-    fi
-}
-
-# --- Qt dependency check/remediation ---
-check_qt_gui() {
-    QT_DEPS_OK=1
-
-    echo -e "${GREEN}[Qt GUI] Checking dependencies...${NC}"
-
-    detect_package_manager
-
-    if ! command -v qmake6 >/dev/null 2>&1; then
-        local qt_package="qt6-base-dev"
-        case "$SME_PKG_MANAGER" in
-            dnf) qt_package="qt6-qtbase-devel" ;;
-            pacman) qt_package="qt6-base" ;;
-            zypper) qt_package="libqt6-qtbase-devel" ;;
-            apk) qt_package="qt6-qtbase-dev" ;;
-        esac
-
-        if ! install_dependency "Qt 6 / qmake6" "$qt_package"; then
-            QT_DEPS_OK=0
-        fi
-    fi
-
-    if ! command -v make >/dev/null 2>&1; then
-        if ! install_dependency "make" "make"; then
-            QT_DEPS_OK=0
-        fi
-    fi
-
-    if command -v qmake6 >/dev/null 2>&1 && command -v make >/dev/null 2>&1; then
-        QT_DEPS_OK=1
-        echo -e "${GREEN}Qt build dependencies detected.${NC}"
-    else
-        QT_DEPS_OK=0
-        echo -e "${YELLOW}Qt build dependencies remain incomplete.${NC}"
-    fi
 }
 
 # --- Install CLI ---
@@ -620,7 +446,6 @@ install_cli() {
     echo -e "${GREEN}[CLI] Installing core...${NC}"
 
     mkdir -p "$(dirname "$SMECLI_BIN")" "$SMECLI_MODULE_DIR"
-    mkdir -p /usr/local/share/icons/ /usr/local/share/applications/
 
     for module in \
         showMeEverything.zsh \
@@ -635,7 +460,6 @@ install_cli() {
         fi
     done
 
-    # Generate the environment-correct public launcher.
     if [ -f "$SME_LAUNCHER_SRC" ]; then
         sed "1c\\#!$SME_SHEBANG" "$SME_LAUNCHER_SRC" > "$SMECLI_BIN"
         chmod 555 "$SMECLI_BIN"
@@ -647,87 +471,6 @@ install_cli() {
     ln -sf "$SMECLI_BIN" "$SMECLI"
 
     echo -e "${GREEN}CLI installed.${NC}"
-}
-
-# --- Install Python GUI ---
-install_python_gui() {
-    echo -e "${GREEN}[Python GUI] Installing...${NC}"
-    install -m 555 "$SMEGPY_SRC" "$SMEGPY_BIN"
-    ln -sf "$SMEGPY_BIN" "$SMEGPY"
-    PYTHON_INSTALLED=1
-}
-
-# --- Build Qt GUI ---
-build_qt_gui() {
-    QT_BUILD_OK=0
-
-    if [ "$QT_DEPS_OK" -eq 1 ]; then
-        echo -e "${GREEN}[Qt GUI] Building...${NC}"
-
-        cd "$GUI_DIR"
-
-        rm -f Makefile qrc_resources.cpp moc_*.cpp *.o showmeeverything_gui showmeeverything_qml 2>/dev/null || true
-
-        if qmake6 showmeeverything_gui.pro && make; then
-            QT_BUILD_OK=1
-            echo -e "${GREEN}Qt GUI built successfully.${NC}"
-        else
-            echo -e "${YELLOW}Qt build failed. CLI installation will remain intact.${NC}"
-        fi
-
-        cd "$SCRIPT_DIR"
-    else
-        echo -e "${YELLOW}Skipping Qt build because dependencies remain unavailable.${NC}"
-    fi
-}
-
-# --- Install Qt GUI ---
-install_qt_gui() {
-    if [ "$QT_BUILD_OK" -eq 1 ] && [ -f "$SMEGUI_SRC" ]; then
-        echo -e "${GREEN}[Qt GUI] Installing...${NC}"
-        install -m 555 "$SMEGUI_SRC" "$SMEGUI_BIN_NEW"
-        ln -sf "$SMEGUI_BIN_NEW" "$SMEGUI"
-        QT_INSTALLED=1
-    else
-        echo -e "${YELLOW}Skipping Qt GUI installation.${NC}"
-    fi
-}
-
-# --- Install desktop entries and icon ---
-install_desktop_entries() {
-    echo -e "${GREEN}[Desktop] Installing entries...${NC}"
-
-    if [ -f "$SMEICON_SRC" ]; then
-        install -m 644 "$SMEICON_SRC" "$SMEICON"
-    else
-        echo -e "${YELLOW}Icon source missing - skipping icon installation.${NC}"
-    fi
-
-    if [ "$QT_INSTALLED" -eq 1 ] && [ -f "$SMEGUID_SRC" ]; then
-        if command -v desktop-file-install >/dev/null 2>&1; then
-            desktop-file-install -m 644 --dir /usr/local/share/applications/ "$SMEGUID_SRC"
-        else
-            echo -e "${YELLOW}desktop-file-install not found, using raw install (no validation).${NC}"
-            install -m 644 "$SMEGUID_SRC" /usr/local/share/applications/
-        fi
-    else
-        echo -e "${YELLOW}Skipping Qt desktop entry.${NC}"
-    fi
-
-    if [ "$PYTHON_INSTALLED" -eq 1 ] && [ -f "$SMEGPYD_SRC" ]; then
-        if command -v desktop-file-install >/dev/null 2>&1; then
-            desktop-file-install -m 644 --dir /usr/local/share/applications/ "$SMEGPYD_SRC"
-        else
-            echo -e "${YELLOW}desktop-file-install not found, using raw install (no validation).${NC}"
-            install -m 644 "$SMEGPYD_SRC" /usr/local/share/applications/
-        fi
-    else
-        echo -e "${YELLOW}Skipping Python desktop entry.${NC}"
-    fi
-
-    if command -v update-desktop-database >/dev/null 2>&1; then
-        update-desktop-database
-    fi
 }
 
 # --- Final verification ---
@@ -765,9 +508,6 @@ verify_installation() {
         echo -e "${GREEN}CLI installation structure verified.${NC}"
     else
         echo -e "${RED}CLI installation verification found errors.${NC}"
-    fi
-
-    if [ "$failed" -ne 0 ]; then
         return 1
     fi
 
@@ -808,24 +548,7 @@ show_summary() {
         echo -e "CLI repository: ${RED}INCOMPLETE${NC}"
     fi
 
-    echo -e "CLI: ${GREEN}INSTALLED${NC} ✓"
-
-    if [ "$SME_ENVIRONMENT" = "TERMUX" ]; then
-        echo -e "GUI: ${YELLOW}NOT APPLICABLE${NC}"
-    else
-        if [ "$PYTHON_INSTALLED" -eq 1 ]; then
-            echo -e "Python GUI: ${GREEN}INSTALLED${NC} ✓"
-        else
-            echo -e "Python GUI: ${YELLOW}SKIPPED${NC}"
-        fi
-
-        if [ "$QT_INSTALLED" -eq 1 ]; then
-            echo -e "Qt GUI: ${GREEN}INSTALLED${NC} ✓"
-        else
-            echo -e "Qt GUI: ${YELLOW}SKIPPED${NC}"
-        fi
-    fi
-
+    echo -e "CLI: ${GREEN}INSTALLED${NC}"
     echo ""
     echo "Commands:"
     echo "  smecli"
@@ -858,16 +581,12 @@ main() {
     check_privileges
     show_header
 
-    # Repository inspection always occurs, regardless of environment.
     check_cli_source
-    check_gui_source
     determine_install_mode
 
-    # Target inspection occurs before anything is removed or overwritten.
     inspect_targets
     check_existing_installation
 
-    # Required CLI dependency: offer install, recheck, then continue.
     if ! check_zsh; then
         echo -e "${YELLOW}Zsh is still unavailable.${NC}"
         echo -e "${YELLOW}The CLI may be installed structurally, but it cannot be runtime-tested.${NC}"
@@ -876,29 +595,10 @@ main() {
     clean_previous_install
     install_cli
 
-    case "$INSTALL_MODE" in
-        LINUX_FULL)
-            check_python_gui
-            if [ "$PYTHON_TK_OK" -eq 1 ]; then
-                install_python_gui
-            fi
-
-            check_qt_gui
-            build_qt_gui
-            install_qt_gui
-            install_desktop_entries
-            ;;
-        LINUX_CLI_ONLY|BROKEN)
-            echo -e "${YELLOW}Skipping GUI installation for mode $INSTALL_MODE.${NC}"
-            ;;
-        TERMUX)
-            echo -e "${YELLOW}Termux installation: GUI components are not installed.${NC}"
-            ;;
-    esac
-
     set_ownership
     verify_installation || true
     show_summary
 }
 
+# --- Run the main function ---
 main
