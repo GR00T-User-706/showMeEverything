@@ -1,3 +1,4 @@
 #!/usr/bin/env zsh
+readonly SME_SIGNATURE="gr00t-user-706"
 
 exec /usr/bin/env zsh "${0:A:h:h}/lib/showMeEverything/showMeEverything.zsh" "$@"

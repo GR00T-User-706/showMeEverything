@@ -1,3 +1,4 @@
+readonly SME_SIGNATURE="gr00t-user-706"
 # SME MODULE: PACKAGE MANAGER SEARCHES
 # The functions below are preserved from the original showMeEverything source.
 {

@@ -1,3 +1,4 @@
+readonly SME_SIGNATURE="gr00t-user-706"
 # SME MODULE: HELP
 # The help function and text below are preserved from the original source.
 show_help() {

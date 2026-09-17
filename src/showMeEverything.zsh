@@ -1,4 +1,5 @@
 #!/usr/bin/env zsh
+readonly SME_SIGNATURE="gr00t-user-706"
 # SME_SIGNATURE=gr00t-user-706
 # SME MODULAR MAIN / SEARCH ENGINE
 
