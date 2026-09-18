@@ -1,4 +1,4 @@
-readonly SME_SIGNATURE="gr00t-user-706"
+readonly SME_SIG_SHELL="gr00t-user--706"
 # SME MODULE: SHELL SEARCHES
 # The functions below are preserved from the original showMeEverything source.
 #==== SHELL SPECIFIC  SEARCH FUNCTIONS ====#

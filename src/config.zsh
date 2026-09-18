@@ -1,6 +1,6 @@
 # SME MODULE: CONFIG
 # The statements below are preserved from the original showMeEverything source.
-readonly SME_SIGNATURE="gr00t-user-706"
+readonly SME_SIG_CONFIG="gr00t-user--706"
 readonly SME_VERSION="v2.3.5"
 # GLOBAL CONFIG DEFAULT STATE
 # VALID STATES:

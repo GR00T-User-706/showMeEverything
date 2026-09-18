@@ -1,9 +1,16 @@
 #!/usr/bin/env zsh
-readonly SME_SIGNATURE="gr00t-user-706"
-# SME_SIGNATURE=gr00t-user-706
+readonly SME_SIGNATURE="gr00t-user--706"
+# SME_SIGNATURE=gr00t-user--706
 # SME MODULAR MAIN / SEARCH ENGINE
 
-SME_MODULE_DIR="${0:A:h}"
+if [ -n "${ZSH_VERSION:-}" ]; then
+    SME_MODULE_DIR="${0:A:h}"
+elif [ -n "${BASH_VERSION:-}" ]; then
+    SME_MODULE_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
+else
+    echo "FATAL: Unsupported shell. BASH or ZSH are required." >&2
+    exit 1
+fi
 
 source "$SME_MODULE_DIR/config.zsh"
 source "$SME_MODULE_DIR/shell_searches.zsh"
