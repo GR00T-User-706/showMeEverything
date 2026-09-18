@@ -59,11 +59,10 @@ prompt() {
     local message="$1"
     local answer=""
 
-    printf "%s" "$message"
+    printf "%s" "$message" >&2
     IFS= read -r answer
     printf '%s' "$answer"
 }
-
 # ============================================================
 # Detect installer location
 # ============================================================
@@ -511,7 +510,11 @@ install_cli() {
         fi
 
         echo "Installing: $target"
-	install -D -m 644 "$source" "$target"
+	if [ "$module" = "showMeEverything.zsh" ]; then
+  		install -D -m 755 "$source" "$target"
+	else
+    		install -D -m 644 "$source" "$target"
+	fi
     done
 
     # --------------------------------------------------------
