@@ -1,4 +1,56 @@
-HELP_TEXT = '''smecli — Show Me Everything CLI
+SHORT_HELP = '''smecli — Show Me Everything CLI
+Author:  Zenrich Shadowstep / GR00T-User-706
+Version: v3.0.0
+
+USAGE:
+  smecli [OPTIONS] [SEARCH_TERM]
+  smecli [SEARCH_FLAGS...] [OPTIONS] [SEARCH_TERM]
+
+HELP:
+  -h, --help              Show this quick help.
+      --full-help        Show detailed help.
+
+OUTPUT OPTIONS:
+  --less                 Internal interactive pager.
+  --sort                 Sort results alphabetically, case-insensitive.
+  --pipe                 Machine-friendly output: disables color, headers, footer.
+  --glob                 Literal/fixed-string matching.
+  --excludeDotFiles,
+  --nodot                Exclude dotfiles from HOME searches.
+  -v, --version          Print SME version/signature.
+
+SEARCH FLAGS:
+  --ALL, -A              Aggressive full scan.
+  --all                  Broad scan without system-directory sweep.
+  --aliases, -a          Search aliases.
+  --builtins, -b         Search shell builtins.
+  --command, -c          Search loaded commands.
+  --functions, -f        Search shell functions.
+  --path, -P             Search PATH.
+  --manpages, --man, -M  Search manpage descriptions.
+  --process, -x          Search running processes.
+  --systemd, -s          Search systemd units.
+  --modules, -m          Search loaded kernel modules.
+  --packages, -p, --pkg  Search package repository/database.
+  --installed, -i        Search installed packages.
+  --not-installed, -n    Search packages not installed.
+  --files, -F            Search package file database.
+  --home, -H             Search HOME.
+  --system, -R           Search major system directories.
+  --usr, -U              Search /usr.
+  --etc, -E              Search /etc.
+  --var, -V              Search /var.
+  --opt, -O              Search /opt.
+  --boot, -B             Search /boot.
+  --lib, -L              Search /lib.
+  --bin                  Search /bin.
+  --sbin                 Search /sbin.
+
+Use --full-help for detailed descriptions, examples, conflict rules, and
+large-output guidance.
+'''
+
+FULL_HELP = '''smecli — Show Me Everything CLI
 Author:  Zenrich Shadowstep / GR00T-User-706
 Contact: crypto_code_weaver_syndicate@proton.me
 Version: v3.0.0
@@ -23,6 +75,13 @@ IMPORTANT:
   Empty searches can produce huge output.
   Use --less or redirect output when running broad scans.
 
+HELP:
+  -h, --help
+      Show the quick help.
+
+  --full-help
+      Show this detailed help.
+
 OUTPUT OPTIONS:
   --less
       Internal interactive pager.
@@ -42,9 +101,6 @@ OUTPUT OPTIONS:
 
   -v, --version
       Print SME version/signature.
-
-  -h, --help
-      Show this help.
 
 SEARCH GROUPS:
   --ALL, -A
@@ -194,4 +250,7 @@ NOTES:
 '''
 
 def show_help():
-    print(HELP_TEXT)
+    print(SHORT_HELP)
+
+def show_full_help():
+    print(FULL_HELP)

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import os,sys,shutil,tempfile,termios,tty
 from . import config
-from .help.help import show_help
+from .help.help import show_help, show_full_help
 from .search.arguments import parse_arguments
 from .search.actions import action_names
 from .search.search import execute
@@ -45,6 +45,7 @@ def emit(actions,pattern,use_pager):
 
 def main(argv=None):
     argv=list(sys.argv[1:] if argv is None else argv); args,unknown=parse_arguments(argv)
+    if args.full_help: show_full_help(); return 0
     if args.help: show_help(); return 0
     if args.version:
         print('SME_VERSION: '+config.SME_VERSION); print('SME_SIGNATURE: '+config.SME_SIGNATURE); return 0
