@@ -5,13 +5,15 @@ MODIFIERS={'--less':'less','--sort':'sort','--pipe':'pipe','--glob':'glob','--ex
 
 def parse_arguments(argv):
     values={k:False for k in set(FLAGS.values())}
-    values.update({k:False for k in ('help','version','less','sort','pipe','glob','exclude_dotfiles')})
+    values.update({k:False for k in ('help','full_help','version','less','sort','pipe','glob','exclude_dotfiles')})
     terms=[]; stop=False
     for arg in argv:
         if stop:
             terms.append(arg); continue
         if arg=='--':
             stop=True; continue
+        if arg=='--full-help':
+            values['full_help']=True; continue
         if arg in ('-h','--help'):
             values['help']=True; continue
         if arg in ('-v','--version'):
