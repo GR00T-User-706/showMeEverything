@@ -58,7 +58,7 @@ search_aliases() {
     alias | sme_grep "$1" | sme_sort
 }
 
-{
+
 search_manpages() {
     local info="Searching manpage descriptions for $1..."
     local wcs="*$1*"

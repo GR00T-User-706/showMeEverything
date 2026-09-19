@@ -66,23 +66,28 @@ footer() {
 }
 
 # --- Common exclude rules ---
-search() {
-    local -a search_terms=()
-    local stop_parse=false
+smecli() {
     local pattern=""
     local -a actions=()
+    local -a search_terms=()
+    local original_args=("$@")
+    local stop_parse=false
     local use_less=false
+    local help_requested=false
     local exclude_dotfiles=false
     local has_ALL=false
     local has_all=false
     local has_system=false
-    local original_args=("$@")
     if [ "${SMECLI_GUI_MODE:-0}" -eq 1 ]; then
         PIPE_MODE=1
     COLOR_MODE=0
     HEADER=0
     FOOTER=0
     fi
+
+    #=========================================================#
+    # PROCESS COMMAND OPTIONS
+    #=========================================================#
 
     while [ $# -gt 0 ]; do
         if [ "$stop_parse" = true ]; then
@@ -176,13 +181,17 @@ search() {
             --var | -V ) actions+=(search_var) ;;
             --opt |  -O ) actions+=(search_opt) ;;
 
-            --help | -h ) show_help; return ;;
+            --help | -h ) help_requested=true ;;
             *)
                 search_terms+=("$1")
             ;;
         esac
         shift
     done
+
+    #=========================================================#
+    # CHECK FOR CONFLICTING SEARCH OPTIONS
+    #=========================================================#
 
     for arg in "${original_args[@]}"; do
         case "$arg" in
@@ -212,13 +221,31 @@ search() {
         done
     fi
 
+    #=========================================================#
+    # CHECK HELP / NO SEARCH
+    #=========================================================#
+
+    if [ "$help_requested" = true ]; then
+        if [ "$use_less" = true ]; then
+            show_help | less -R
+        else
+            show_help
+        fi
+        return 0
+    fi
 
     [ ${#actions[@]} -eq 0 ] && {
         echo "$0: No search flags given"
         echo "$0: for more information try [$0 --help]"
         return 1
     }
+
     pattern="${search_terms[*]}"
+
+    #=========================================================#
+    # RUN SEARCHES
+    #=========================================================#
+
     if [ "$use_less" = true ]; then
         {
             for fn in "${actions[@]}"; do
@@ -234,5 +261,4 @@ search() {
     footer
 }
 
-search "$@"
-
+smecli "$@"
