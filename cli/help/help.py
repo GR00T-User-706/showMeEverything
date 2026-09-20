@@ -21,7 +21,7 @@ OUTPUT OPTIONS:
 
 SEARCH FLAGS:
   --ALL, -A              Aggressive full scan.
-  --all                  Broad scan without system-directory sweep.
+  --all                  Broad scan without system-directory sweep.\n  --environment, --env, -e\n                         Search environment, shell variables, process\n                         environments, environment configuration, and\n                         application-defined environment variables.
   --aliases, -a          Search aliases.
   --builtins, -b         Search shell builtins.
   --command, -c          Search loaded commands.
