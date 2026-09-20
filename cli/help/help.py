@@ -21,7 +21,10 @@ OUTPUT OPTIONS:
 
 SEARCH FLAGS:
   --ALL, -A              Aggressive full scan.
-  --all                  Broad scan without system-directory sweep.\n  --environment, --env, -e\n                         Search environment, shell variables, process\n                         environments, environment configuration, and\n                         application-defined environment variables.
+  --all                  Broad scan without system-directory sweep.
+  --environment, --env, -e
+                         Search environment and shell variables.
+  --environment, --env, -e\n                         Search environment, shell variables, process\n                         environments, environment configuration, and\n                         application-defined environment variables.
   --aliases, -a          Search aliases.
   --builtins, -b         Search shell builtins.
   --command, -c          Search loaded commands.
@@ -105,8 +108,8 @@ OUTPUT OPTIONS:
 SEARCH GROUPS:
   --ALL, -A
       Aggressive full scan:
-      PATH, commands, builtins, aliases, functions, manpages,
-      systemd units, running processes, kernel modules,
+      environment, shell variables, PATH, commands, builtins, aliases,
+      functions, manpages, systemd units, running processes, kernel modules,
       package repository, installed packages, package file DB,
       not-installed packages, HOME, and system directories.
 
@@ -115,10 +118,21 @@ SEARCH GROUPS:
 
   --all
       Broad user/system scan without the full system directory sweep:
-      PATH, commands, builtins, aliases, functions, manpages,
-      running processes, package searches, and HOME.
+      environment, shell variables, PATH, commands, builtins, aliases,
+      functions, manpages, running processes, package searches, and HOME.
 
       Safer than --ALL, but still potentially large.
+
+ENVIRONMENT SEARCH FLAGS:
+  --environment, --env, -e
+      Search exported environment variables, shell variables discoverable
+      from startup files, system environment configuration, systemd
+      environments, readable process environments, and documented or
+      configured application environment-variable names.
+
+      Results include the source where the variable was discovered.
+      Application variables may be reported even when they are not
+      currently exported by the shell.
 
 SHELL SEARCH FLAGS:
   --aliases, -a
@@ -206,6 +220,12 @@ MUTUALLY EXCLUSIVE MODES:
 COMMON USE:
   Find commands:
     smecli --command ssh
+
+  Find environment and application variables:
+    smecli --environment ollama
+
+  Search Ollama-related environment variables:
+    smecli --environment OLLAMA_
 
   Find aliases:
     smecli --aliases git
