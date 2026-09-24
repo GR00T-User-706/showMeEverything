@@ -105,7 +105,7 @@ smecli() {
 
 
         case "$1" in
-           --excludeDotFiles|--nodot) EXCLUDE_DOTFILES=true ;;
+           --excludeDotFiles|--nodot) exclude_dotfiles=true ;;
             --less) use_less=true ;;
             --sort) SORT_MODE=1 ;;
             --pipe)
@@ -117,7 +117,7 @@ smecli() {
             --glob) REGEX=0 ;;
             -v|--version)
                 echo "SME_VERSION: $SME_VERSION"
-                echo "SME_SIGNATURE: $SME_SIGNATURE$"
+                echo "SME_SIGNATURE: $SME_SIGNATURE"
                 return 0
             ;;
 
@@ -148,6 +148,7 @@ smecli() {
                     search_aliases
                     search_shell_functions
                     search_manpages
+                    search_systemd_units
                     search_running_processes
                     search_package_repo
                     search_installed_packages
