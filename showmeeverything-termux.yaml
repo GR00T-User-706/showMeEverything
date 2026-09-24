@@ -1,0 +1,45 @@
+control:
+  Package: showmeeverything-cli
+  Version: 3.0.0
+  Architecture: all
+  Maintainer: GR00T-User-706
+  Depends: python
+  Description: |-
+    showMeEverything command-line tools
+     Includes the Zsh CLI and Python CLI implementation.
+     The Python CLI is available as smecli2.
+
+installation_prefix: /data/data/com.termux/files/usr
+deb_dir: .
+
+data_files:
+
+  lib/showMeEverything/showMeEverything.zsh:
+    source: src/showMeEverything.zsh
+    perm: "755"
+    symlink_destinations:
+      - bin/showMeEverything
+      - bin/smecli
+
+  lib/showMeEverything/config.zsh:
+    source: src/config.zsh
+
+  lib/showMeEverything/shell_searches.zsh:
+    source: src/shell_searches.zsh
+
+  lib/showMeEverything/package_manager_searches.zsh:
+    source: src/package_manager_searches.zsh
+
+  lib/showMeEverything/filesystem_searches.zsh:
+    source: src/filesystem_searches.zsh
+
+  lib/showMeEverything/help.zsh:
+    source: src/help.zsh
+
+  bin/smecli2:
+    source: packaging/smecli2
+    perm: "755"
+
+  lib/python3.14/site-packages/cli:
+    source: cli
+    source_recurse: true

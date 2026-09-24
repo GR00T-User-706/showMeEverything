@@ -72,8 +72,7 @@ void SearchBackend::runSearch(const QString& args)
     QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
     env.insert("SMECLI_GUI_MODE", "1");
     m_process->setProcessEnvironment(env);
-    
-    m_process->setProgram("/usr/local/bin/showMeEverything");
+    m_process->setProgram("showMeEverything");
     m_process->setArguments(argList);
 
     connect(m_process, &QProcess::readyReadStandardOutput, this,
