@@ -8,8 +8,7 @@ search_path() {
     local dir
     header0 "$info"
 
-    local IFS=':'
-    for dir in $PATH; do
+    while IFS=: read -r dir; do
         [ -d "$dir" ] || continue
 
         if [ "$REGEX" -eq 1 ]; then
@@ -17,7 +16,7 @@ search_path() {
         else
             find "$dir" "${EXCLUDES[@]}" -iname "*$1*" 2>/dev/null | sme_grep "$1" | sme_sort
         fi
-    done
+    done <<< "$PATH"
 }
 search_loaded_commands() {
     local info="Searching loaded shell commands for $1..."
