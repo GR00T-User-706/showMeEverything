@@ -68,6 +68,7 @@ footer() {
 # --- Common exclude rules ---
 smecli() {
     local pattern=""
+    local term
     local -a actions=()
     local -a search_terms=()
     local original_args=("$@")
@@ -195,6 +196,7 @@ smecli() {
     #=========================================================#
 
     for arg in "${original_args[@]}"; do
+        [ "$arg" = "--" ] && break
         case "$arg" in
             --ALL|ALL|-A|A) has_ALL=true ;;
             --all|all) has_all=true ;;
@@ -241,21 +243,27 @@ smecli() {
         return 1
     }
 
-    pattern="${search_terms[*]}"
+    # An empty term preserves the existing behavior: search without a filter.
+    local -a terms_to_search=("${search_terms[@]}")
+    [ ${#terms_to_search[@]} -eq 0 ] && terms_to_search=("")
 
     #=========================================================#
-    # RUN SEARCHES
+    # RUN EACH SEARCH ACTION FOR EACH INDIVIDUAL SEARCH TERM
     #=========================================================#
 
     if [ "$use_less" = true ]; then
         {
-            for fn in "${actions[@]}"; do
-                "$fn" "$pattern"
+            for term in "${terms_to_search[@]}"; do
+                for fn in "${actions[@]}"; do
+                    "$fn" "$term"
+                done
             done
         } | less -R
     else
-        for fn in "${actions[@]}"; do
-            "$fn" "$pattern"
+        for term in "${terms_to_search[@]}"; do
+            for fn in "${actions[@]}"; do
+                "$fn" "$term"
+            done
         done
     fi
 

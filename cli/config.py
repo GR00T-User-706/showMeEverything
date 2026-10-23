@@ -1,7 +1,7 @@
 import os, socket
 from datetime import datetime
 SME_SIGNATURE='gr00t-user-706'
-SME_VERSION='v3.0.0'
+SME_VERSION='v3.1.0'
 PIPE_MODE=False
 COLOR_MODE=True
 REGEX=True

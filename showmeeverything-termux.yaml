@@ -1,6 +1,6 @@
 control:
   Package: showmeeverything-cli
-  Version: 3.0.0
+  Version: 3.1.0
   Architecture: all
   Maintainer: GR00T-User-706
   Depends: python

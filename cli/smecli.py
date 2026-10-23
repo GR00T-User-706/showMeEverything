@@ -28,12 +28,14 @@ def pager(path):
     finally:
         termios.tcsetattr(fd,termios.TCSADRAIN,old); print()
 
-def emit(actions,pattern,use_pager):
+def emit(actions,terms,use_pager):
+    terms = terms or [""]
     f=tempfile.NamedTemporaryFile('w+',encoding='utf-8',delete=False); path=f.name
     try:
-        for name,results in execute(actions,pattern):
-            if not config.PIPE_MODE: f.write('#=========================================================#\nSearching '+name+' for '+pattern+'...\n#=========================================================#\n')
-            for result in results: f.write(result+'\n')
+        for term in terms:
+            for name,results in execute(actions,term):
+                if not config.PIPE_MODE: f.write('#=========================================================#\nSearching '+name+' for '+term+'...\n#=========================================================#\n')
+                for result in results: f.write(result+'\n')
         if not config.PIPE_MODE: f.write('#=========================================================#\n'+config.terminal_info()+'\n#=========================================================#\n')
         f.close()
         if use_pager: pager(path)
@@ -49,15 +51,16 @@ def main(argv=None):
     if args.help: show_help(); return 0
     if args.version:
         print('SME_VERSION: '+config.SME_VERSION); print('SME_SIGNATURE: '+config.SME_SIGNATURE); return 0
+    flag_argv=argv[:argv.index('--')] if '--' in argv else argv
     broad={'--ALL','-A','--all','--system','-R'}
-    if sum(x in argv for x in broad)>1:
+    if sum(x in flag_argv for x in broad)>1:
         print('WARNING: conflicting flags detected: ALL|all|system are mutually exclusive.'); return 1
     actions=action_names(argv)
     if not actions:
         print('smecli: No search flags given'); print('smecli: for more information try [smecli --help]'); return 1
     config.PIPE_MODE=args.pipe; config.COLOR_MODE=not args.pipe; config.REGEX=not args.glob; config.SORT_MODE=args.sort; config.EXCLUDE_DOTFILES=args.exclude_dotfiles
-    terms=argv[argv.index('--')+1:] if '--' in argv else list(args.search_terms)+list(unknown)
-    try: emit(actions,' '.join(terms),args.less)
+    terms=list(args.search_terms)+list(unknown)
+    try: emit(actions,terms,args.less)
     except BrokenPipeError: return 0
     except Exception as exc: print('smecli: '+str(exc),file=sys.stderr); return 1
     return 0

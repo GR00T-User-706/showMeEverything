@@ -92,19 +92,19 @@ ApplicationWindow {
                 "modelData": "Examples:"
             });
             outputModel.append({
-                "modelData": "  --all firefox"
+                "modelData": "  --all firefox vim git"
             });
             outputModel.append({
-                "modelData": "  --packages vim"
+                "modelData": "  -c python ssh git"
             });
             outputModel.append({
                 "modelData": "  --help"
             });
             return ;
         }
-        var convertedInput = convertToFlag(rawInput);
-        argumentInput.text = convertedInput;
-        searchBackend.runSearch(convertedInput);
+        // The backend tokenizes quoted input and passes every flag/term through.
+        // It also normalizes a friendly alias in the first-token position.
+        searchBackend.runSearch(rawInput);
     }
 
     function clearSearch() {
@@ -171,7 +171,7 @@ ApplicationWindow {
                 id: argumentInput
 
                 Layout.fillWidth: true
-                placeholderText: "Enter flag (e.g., --all, --packages, help) and optional search term..."
+                placeholderText: "Enter flags and multiple search terms (e.g., -c python ssh git)..."
                 onAccepted: performSearch()
 
                 background: Rectangle {

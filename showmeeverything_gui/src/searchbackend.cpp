@@ -3,6 +3,7 @@
 #include <QUrl>
 #include <QTimer>
 #include <QProcessEnvironment>
+#include <QMap>
 // SME_SIGNATURE=gr00t-user-706
 SearchBackend::SearchBackend(QObject* parent)
     : QObject(parent)
@@ -53,14 +54,38 @@ SearchBackend::SearchBackend(QObject* parent)
 void SearchBackend::runSearch(const QString& args)
 {
     clearOutput();
-    QStringList argList = args.split(' ', Qt::KeepEmptyParts);
-
-    // validate that the first argument is an allowed flag
-    if (!argList.isEmpty() && !m_allowedArgs.contains(argList.first())) {
-        appendOutput("Error: Invalid argument. Use --help for available flags\n");
-        appendOutput("You entered: " + argList.first() + "\n");
+    QStringList argList = QProcess::splitCommand(args);
+    if (argList.isEmpty()) {
+        appendOutput("Error: Enter at least one search flag. Use --help for available flags\n");
         return;
     }
+
+    // Friendly GUI aliases are accepted for the first flag. Remaining tokens are
+    // passed through so the CLI can collect all flags and independent terms.
+    const QMap<QString, QString> aliases = {
+        {"ALL", "--ALL"}, {"A", "--ALL"}, {"all", "--all"},
+        {"aliases", "--aliases"}, {"a", "--aliases"},
+        {"builtins", "--builtins"}, {"b", "--builtins"},
+        {"command", "--command"}, {"c", "--command"},
+        {"files", "--files"}, {"F", "--files"},
+        {"functions", "--functions"}, {"f", "--functions"},
+        {"help", "--help"}, {"h", "--help"},
+        {"home", "--home"}, {"H", "--home"},
+        {"installed", "--installed"}, {"i", "--installed"},
+        {"manpages", "--manpages"}, {"man", "--manpages"}, {"M", "--manpages"},
+        {"modules", "--modules"}, {"m", "--modules"},
+        {"process", "--process"}, {"x", "--process"},
+        {"packages", "--packages"}, {"pkg", "--packages"}, {"p", "--packages"},
+        {"path", "--path"}, {"P", "--path"},
+        {"systemd", "--systemd"}, {"s", "--systemd"},
+        {"system", "--system"}, {"R", "--system"},
+        {"usr", "--usr"}, {"U", "--usr"}, {"etc", "--etc"}, {"E", "--etc"},
+        {"var", "--var"}, {"V", "--var"}, {"opt", "--opt"}, {"O", "--opt"},
+        {"boot", "--boot"}, {"B", "--boot"}, {"lib", "--lib"}, {"L", "--lib"},
+        {"bin", "--bin"}, {"sbin", "--sbin"}
+    };
+    if (!argList.isEmpty() && aliases.contains(argList.first()))
+        argList[0] = aliases.value(argList.first());
 
     if (m_process && m_running) {
         m_process->terminate();

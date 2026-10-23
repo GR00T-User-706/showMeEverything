@@ -1,10 +1,10 @@
 SHORT_HELP = '''smecli — Show Me Everything CLI
 Author:  Zenrich Shadowstep / GR00T-User-706
-Version: v3.0.0
+Version: v3.1.0
 
 USAGE:
-  smecli [OPTIONS] [SEARCH_TERM]
-  smecli [SEARCH_FLAGS...] [OPTIONS] [SEARCH_TERM]
+  smecli [OPTIONS] [SEARCH_TERM ...]
+  smecli [SEARCH_FLAGS...] [OPTIONS] [SEARCH_TERM ...]
 
 HELP:
   -h, --help              Show this quick help.
@@ -71,10 +71,11 @@ BASIC EXAMPLES:
   smecli --systemd ssh
   smecli --packages nmap
   smecli --not-installed python
+  smecli -c python ssh git
 
 IMPORTANT:
   At least one search flag is required.
-  SEARCH_TERM is optional for most flags.
+  Multiple SEARCH_TERM arguments are searched independently. SEARCH_TERM is optional for most flags.
   Empty searches can produce huge output.
   Use --less or redirect output when running broad scans.
 

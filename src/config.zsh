@@ -1,7 +1,7 @@
 # SME MODULE: CONFIG
 # The statements below are preserved from the original showMeEverything source.
 readonly SME_SIG_CONFIG="gr00t-user--706"
-readonly SME_VERSION="v2.3.5"
+readonly SME_VERSION="v3.1.0"
 # GLOBAL CONFIG DEFAULT STATE
 # VALID STATES:
 # PIPE_MODE=0 COLOR_MODE=1  -> human readable ANSI output

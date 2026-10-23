@@ -6,6 +6,7 @@ import subprocess
 import threading
 import shutil
 import os
+import shlex
 
 
 SEARCH_SCRIPT = shutil.which("showMeEverything")
@@ -42,7 +43,7 @@ FLAG_GROUPS = {
     "sbin": ["--sbin"],
 }
 ALLOWED_ARGS = [arg for group in FLAG_GROUPS.values() for arg in group]
-ARG_MAP = {arg: arg for arg in ALLOWED_ARGS}
+ARG_MAP = {arg: group[0] for group in FLAG_GROUPS.values() for arg in group}
 
 
 def append_text(line):
@@ -54,20 +55,21 @@ def append_text(line):
 
 
 def run_search_thread(arg):
-    parts = arg.strip().split(maxsplit=1)
-
-    key = parts[0]
-
-    if key not in ARG_MAP:
-        append_text(f"Argument '{parts[0]}' not allowed\n")
+    try:
+        parts = shlex.split(arg)
+    except ValueError as e:
+        append_text(f"Input parsing error: {e}\n")
         return
-    flag = ARG_MAP[key]
-    search = parts[1] if len(parts) > 1 else ""
+    if not parts:
+        append_text("Please enter a search flag and optional search terms.\n")
+        return
 
-    cmd = [SEARCH_SCRIPT, flag]
-
-    if search:
-        cmd.append(search)
+    # Friendly names are accepted for the first flag; all remaining flags and
+    # terms are passed individually to the CLI, which performs each term search.
+    first = parts[0]
+    if first in ARG_MAP:
+        parts[0] = ARG_MAP[first]
+    cmd = [SEARCH_SCRIPT, *parts]
     try:
         env = os.environ.copy()
         env["SMECLI_GUI_MODE"] = "1"
@@ -83,6 +85,7 @@ def run_search_thread(arg):
             append_text(line)
         for line in process.stderr:
             append_text(f" --- ERRORS ---\n{line}")
+        process.wait()
     except Exception as e:
         append_text(f"Exception: {e}\n")
 
