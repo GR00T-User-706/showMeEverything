@@ -1,5 +1,22 @@
 # Changelog
 
+## [3.2.0]
+
+### Features
+
+- finalized the multisearch engine (f7e2851c)
+
+### Documentation
+
+- add changelog starting at version 3.1.0 (ab44f571)
+- added the semver-forge init generated VERSION and .semver-forge.toml (9aa2482e)
+- strengthen agent operating rules (d062269b)
+
+### Maintenance
+
+- housekeepih deleted old package version 3.0.3 (115aade5)
+
+
 All notable changes to **showMeEverything** are documented here.
 
 The package version is maintained in the repository-root `VERSION` file. That file is the single source of truth for the package version; version values in release artifacts and package metadata must be derived from it.
