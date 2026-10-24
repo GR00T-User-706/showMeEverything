@@ -62,11 +62,10 @@ SEARCH GROUPS:
 
       WARNING:
       Very large output, especially without SEARCH_TERM.
-
   --all
       Broad user/system scan without the full system directory sweep:
       PATH, commands, builtins, aliases, functions, manpages,
-      running processes, package searches, and HOME.
+      systemd units, running processes, package searches, and HOME.
 
       Safer than --ALL, but still potentially large.
 

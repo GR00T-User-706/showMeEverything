@@ -198,9 +198,9 @@ smecli() {
     for arg in "${original_args[@]}"; do
         [ "$arg" = "--" ] && break
         case "$arg" in
-            --ALL|ALL|-A|A) has_ALL=true ;;
-            --all|all) has_all=true ;;
-            --system|system|-R|R) has_system=true ;;
+            --ALL|-A) has_ALL=true ;;
+            --all) has_all=true ;;
+            --system|-R) has_system=true ;;
         esac
     done
     if { [ "$has_ALL" = true ] && [ "$has_all" = true ]; } || \

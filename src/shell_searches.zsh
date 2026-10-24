@@ -63,7 +63,11 @@ search_manpages() {
     header0 "$info"
 
     if command -v apropos >/dev/null 2>&1; then
-        apropos -w "$1" | sme_grep "$1" | sme_sort
+        if [ -z "$1" ]; then
+            apropos . 2>/dev/null | sme_grep "$1" | sme_sort
+        else
+            apropos "$1" 2>/dev/null | sme_grep "$1" | sme_sort
+        fi
     fi
 }
 

@@ -1,6 +1,10 @@
 control:
   Package: showmeeverything-cli
+<<<<<<< Updated upstream
   Version: 3.1.0
+=======
+  Version: 3.0.3
+>>>>>>> Stashed changes
   Architecture: all
   Maintainer: GR00T-User-706
   Depends: python
