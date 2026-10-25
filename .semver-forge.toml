@@ -34,5 +34,5 @@ notes_file = "CHANGELOG.md"
 require_confirmation = true
 release_when_no_changes = false
 test_commands = []
-build_commands = ["termux-create-package"]
+build_commands = ["termux-create-package ./showmeeverything-termux.yaml"]
 artifact_paths = []
