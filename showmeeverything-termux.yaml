@@ -1,13 +1,9 @@
 control:
   Package: showmeeverything-cli
-<<<<<<< Updated upstream
-  Version: 3.1.0
-=======
-  Version: 3.0.3
->>>>>>> Stashed changes
+  Version: 3.2.1
   Architecture: all
   Maintainer: GR00T-User-706
-  Depends: python
+  Depends: python zsh
   Description: |-
     showMeEverything command-line tools
      Includes the Zsh CLI and Python CLI implementation.
