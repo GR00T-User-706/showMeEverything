@@ -16,10 +16,9 @@ depends=('zsh' 'python')
 source=()
 sha256sums=()
 
-# No source clone and no compilation are needed. makepkg's default $srcdir is
-# named "src", which is already a real source directory in this repository.
-# Keeping this package source-only prevents generated files from colliding
-# with the application's Zsh modules.
+# No source clone or compilation is needed. This PKGBUILD is nested under
+# packaging/arch/cli so makepkg uses an isolated src/ workspace and cannot
+# collide with the project's real root-level src/ directory.
 
 check() {
     local repo_dir="$startdir/../../.."
@@ -42,7 +41,7 @@ check() {
 }
 
 package() {
-    local repo_dir="$startdir"
+    local repo_dir="$startdir/../../.."
     local module
     local source_version
     source_version="$(<"$repo_dir/VERSION")"
