@@ -26,7 +26,7 @@ perf = "patch"
 revert = "patch"
 
 [sync]
-targets = [{ type = "shell", file = "PKGBUILD", key = "pkgver" }]
+targets = [\n    { type = "shell", file = "packaging/arch/cli/PKGBUILD", key = "pkgver" },\n    { type = "shell", file = "packaging/arch/gui/PKGBUILD", key = "pkgver" },\n]
 
 [release]
 commit_version = true
