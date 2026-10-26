@@ -80,9 +80,10 @@ showMeEverything
 
 The CLI and GUI are packaged separately.
 
-Build and install both CLI implementations (Zsh `smecli` and Python `smecli2`) from the repository root:
+Build and install both CLI implementations (Zsh `smecli` and Python `smecli2`):
 
 ```sh
+cd packaging/arch/cli
 makepkg -si
 ```
 
