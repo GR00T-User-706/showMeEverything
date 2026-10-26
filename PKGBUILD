@@ -82,6 +82,7 @@ build() {
 }
 
 package_showmeeverything-cli() {
+    depends=('zsh' 'python')
     local repo_dir="$startdir"
     local module
 
@@ -134,6 +135,11 @@ EOF
 }
 
 package_showmeeverything-gui() {
+    depends=('qt5-base' 'qt5-declarative' 'qt5-quickcontrols2')
+    optdepends=(
+        'showmeeverything-cli: command-line search engine used by the GUI'
+        'tk: Python Tkinter GUI fallback'
+    )
     local repo_dir="$startdir"
 
     # Install the Qt/QML GUI.
