@@ -24,7 +24,7 @@ source=()
 sha256sums=()
 
 repo_dir() {
-    printf '%s\n' "$PWD/../../.."
+    printf '%s\n' "$startdir/../../.."
 }
 
 check() {
