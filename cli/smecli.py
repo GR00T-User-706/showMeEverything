@@ -57,12 +57,12 @@ def main(argv=None):
         print('WARNING: conflicting flags detected: ALL|all|system are mutually exclusive.'); return 1
     actions=action_names(argv)
     if not actions:
-        print('smecli: No search flags given'); print('smecli: for more information try [smecli --help]'); return 1
+        print('smecli2: No search flags given'); print('smecli2: for more information try [smecli2 --help]'); return 1
     config.PIPE_MODE=args.pipe; config.COLOR_MODE=not args.pipe; config.REGEX=not args.glob; config.SORT_MODE=args.sort; config.EXCLUDE_DOTFILES=args.exclude_dotfiles
     terms=list(args.search_terms)+list(unknown)
     try: emit(actions,terms,args.less)
     except BrokenPipeError: return 0
-    except Exception as exc: print('smecli: '+str(exc),file=sys.stderr); return 1
+    except Exception as exc: print('smecli2: '+str(exc),file=sys.stderr); return 1
     return 0
 
 if __name__=='__main__': main()
