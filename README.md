@@ -84,14 +84,22 @@ Build and install both CLI implementations (Zsh `smecli` and Python `smecli2`):
 
 ```sh
 cd packaging/arch/cli
-makepkg -si
+makepkg --check -si
 ```
 
 Build and install the desktop interfaces separately:
 
 ```sh
 cd packaging/arch/gui
-makepkg -si
+makepkg --check -si
+```
+
+Verify both CLI entry points after installation:
+
+```sh
+smecli --version
+smecli2 --version
+smecli2 --help
 ```
 
 The GUI package optionally uses the CLI package as its search backend. The two packages can be installed, upgraded, and removed separately.
