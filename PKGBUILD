@@ -2,16 +2,16 @@
 # Build from the repository checkout with:
 #   makepkg -si
 #
-# VERSION is the version source of truth. Keep pkgver derived from that file
-# so SemVer Forge's PKGBUILD sync target cannot drift from the project version.
+# VERSION is the source of truth. SemVer Forge synchronizes this pkgver field
+# from VERSION before release/package builds.
 
 pkgname=showmeeverything-cli
-pkgver="$(<"$startdir/VERSION")"
+pkgver=3.2.1
 pkgrel=1
 pkgdesc="System-wide Linux search CLI with Qt and Tk desktop interfaces"
 arch=('x86_64')
 url="https://github.com/GR00T-User-706/showMeEverything"
-license=('GPL-3.0-or-later')
+license=('GPL3')
 depends=(
     'zsh'
     'qt5-base'
@@ -34,7 +34,7 @@ prepare() {
     source_version="$(<"$srcdir/showmeeverything/VERSION")"
 
     if [[ "$source_version" != "$pkgver" ]]; then
-        error "VERSION mismatch: PKGBUILD checkout is $pkgver but fetched source is $source_version"
+        error "VERSION mismatch: PKGBUILD pkgver is $pkgver but fetched VERSION is $source_version"
         return 1
     fi
 
@@ -53,7 +53,10 @@ prepare() {
         showmeeverything_gui/src/searchbackend.cpp \
         showmeeverything_gui/src/searchbackend.h \
         showmeeverything_gui/src/qml/main.qml \
-        showmeeverything_gui/showmeeverything_tk.py
+        showmeeverything_gui/showmeeverything_tk.py \
+        showmeeverything_gui/assets/com.github.gr00t-user-706.showmeeverything-gui-qml.desktop \
+        showmeeverything_gui/assets/com.github.gr00t-user-706.showmeeverything-gui-python.desktop \
+        LICENSE
     do
         if [[ ! -f "$srcdir/showmeeverything/$required_file" ]]; then
             error "Required source file is missing: $required_file"
