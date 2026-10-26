@@ -76,6 +76,25 @@ showMeEverything
 >- The CLI (smecli) is the primary interface and works on all supported systems. 
 ---
 ---
+## Arch Linux / Manjaro Packages
+
+The CLI and GUI are packaged separately.
+
+Build and install both CLI implementations (Zsh `smecli` and Python `smecli2`) from the repository root:
+
+```sh
+makepkg -si
+```
+
+Build and install the desktop interfaces separately:
+
+```sh
+cd packaging/arch/gui
+makepkg -si
+```
+
+The GUI package optionally uses the CLI package as its search backend. The two packages can be installed, upgraded, and removed separately.
+
 ## Installation
 >- make the install script executable and then us it like 
 ```
