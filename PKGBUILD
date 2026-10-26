@@ -21,7 +21,7 @@ sha256sums=()
 # must not create build files or clone another checkout there.
 
 check() {
-    local repo_dir="$PWD"
+    local repo_dir="$startdir"
 
     [[ "$(<"$repo_dir/VERSION")" == "$pkgver" ]] || {
         error "PKGBUILD pkgver ($pkgver) does not match VERSION ($( < "$repo_dir/VERSION" ))"
