@@ -72,7 +72,7 @@ build() {
     mkdir -p "$build_dir"
     cd "$build_dir"
 
-    qmake "$repo_dir/showmeeverything_gui/showmeeverything_gui.pro"
+    qmake-qt5 "$repo_dir/showmeeverything_gui/showmeeverything_gui.pro"
     make
 }
 
