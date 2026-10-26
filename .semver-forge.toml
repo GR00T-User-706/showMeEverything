@@ -25,7 +25,7 @@ perf = "patch"
 revert = "patch"
 
 [sync]
-targets = ["pyproject.toml", "PKGBUILD", "showmeeverything-termux.yaml"]
+targets = [ { type = "text", file = "VERSION" }, { type = "pkgver", file = "PKGBUILD"}, { type = "Version", file = "showmeeverything-termux.yaml" } ]
 
 [release]
 commit_version = true
@@ -34,5 +34,5 @@ notes_file = "CHANGELOG.md"
 require_confirmation = true
 release_when_no_changes = false
 test_commands = []
-build_commands = ["termux-create-package ./showmeeverything-termux.yaml"]
+build_commands = []
 artifact_paths = []

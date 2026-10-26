@@ -1,5 +1,5 @@
 pkgname=showmeeverything-cli
-pkgver=3.0.3
+pkgver=3.2.1
 pkgrel=1
 pkgdesc="showMeEverything command-line tools"
 arch=('any')
