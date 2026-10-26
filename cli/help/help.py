@@ -1,6 +1,8 @@
+from .. import config
+
 SHORT_HELP = '''smecli — Show Me Everything CLI
 Author:  Zenrich Shadowstep / GR00T-User-706
-Version: v3.1.0
+Version: @SME_VERSION@
 
 USAGE:
   smecli [OPTIONS] [SEARCH_TERM ...]
@@ -56,7 +58,7 @@ large-output guidance.
 FULL_HELP = '''smecli — Show Me Everything CLI
 Author:  Zenrich Shadowstep / GR00T-User-706
 Contact: crypto_code_weaver_syndicate@proton.me
-Version: v3.0.0
+Version: @SME_VERSION@
 
 USAGE:
   smecli [OPTIONS] [SEARCH_TERM]
@@ -271,7 +273,7 @@ NOTES:
 '''
 
 def show_help():
-    print(SHORT_HELP)
+    print(SHORT_HELP.replace('@SME_VERSION@', config.SME_VERSION))
 
 def show_full_help():
-    print(FULL_HELP)
+    print(FULL_HELP.replace('@SME_VERSION@', config.SME_VERSION))
