@@ -31,3 +31,8 @@ showmeeverything_qml
 package-lock.json
 .qtc_clangd/
 .data/
+
+# Isolated Arch makepkg workspaces and generated packages
+/packaging/arch/*/src/
+/packaging/arch/*/pkg/
+/packaging/arch/*/*.pkg.tar.*
