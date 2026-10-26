@@ -53,6 +53,12 @@ build() {
 package() {
     local root
     root="$(repo_dir)"
+    local source_version
+    source_version="$(<"$root/VERSION")"
+    if [[ "$source_version" != "$pkgver" ]]; then
+        error "VERSION mismatch: PKGBUILD pkgver is $pkgver but VERSION is $source_version"
+        return 1
+    fi
 
     install -Dm755 "$srcdir/build-qml/showmeeverything_qml" \
         "$pkgdir/usr/bin/showmeeverything_qml"
