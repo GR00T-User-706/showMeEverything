@@ -83,6 +83,8 @@ package() {
     cp -a "$repo_dir/cli" "$pkgdir/usr/lib/showmeeverything-python/"
     install -Dm644 "$repo_dir/VERSION" \
         "$pkgdir/usr/lib/showmeeverything-python/VERSION"
+    install -Dm644 "$repo_dir/VERSION" \
+        "$pkgdir/usr/lib/showMeEverything/VERSION"
 
     # Do not ship local Python bytecode caches.
     find "$pkgdir/usr/lib/showmeeverything-python/cli" \
