@@ -38,6 +38,18 @@ check() {
 
     PYTHONDONTWRITEBYTECODE=1 PYTHONPATH="$repo_dir" \
         python -m cli.smecli --full-help >/dev/null
+
+    local module
+    for module in \
+        showMeEverything.zsh \
+        config.zsh \
+        shell_searches.zsh \
+        package_manager_searches.zsh \
+        filesystem_searches.zsh \
+        help.zsh
+    do
+        zsh -n "$repo_dir/src/$module"
+    done
 }
 
 package() {
