@@ -1,5 +1,5 @@
 # SME_SIGNATURE=gr00t-user-706
-# Build the CLI package from the repository root:
+# Build both CLI implementations from the repository root:
 #   makepkg -si
 #
 # VERSION is the source of truth; pkgver must match it.
@@ -15,18 +15,20 @@ depends=('zsh' 'python')
 source=()
 sha256sums=()
 
-# Intentionally no source clone and no build() function.
-# makepkg's default $srcdir is named "src", which is already a real source
-# directory in this repository. The CLI package needs no compilation, so it
-# must not create build files or clone another checkout there.
+# No source clone and no compilation are needed. makepkg's default $srcdir is
+# named "src", which is already a real source directory in this repository.
+# Keeping this package source-only prevents generated files from colliding
+# with the application's Zsh modules.
 
 check() {
     local repo_dir="$startdir"
+    local source_version
+    source_version="$(<"$repo_dir/VERSION")"
 
-    [[ "$(<"$repo_dir/VERSION")" == "$pkgver" ]] || {
-        error "PKGBUILD pkgver ($pkgver) does not match VERSION ($( < "$repo_dir/VERSION" ))"
+    if [[ "$source_version" != "$pkgver" ]]; then
+        error "VERSION mismatch: PKGBUILD pkgver is $pkgver but VERSION is $source_version"
         return 1
-    }
+    fi
 
     PYTHONDONTWRITEBYTECODE=1 PYTHONPATH="$repo_dir" \
         python -m cli.smecli --version
@@ -39,8 +41,15 @@ check() {
 }
 
 package() {
-    local repo_dir="$PWD"
+    local repo_dir="$startdir"
     local module
+    local source_version
+    source_version="$(<"$repo_dir/VERSION")"
+
+    if [[ "$source_version" != "$pkgver" ]]; then
+        error "VERSION mismatch: PKGBUILD pkgver is $pkgver but VERSION is $source_version"
+        return 1
+    fi
 
     # Install the modular Zsh CLI.
     install -d "$pkgdir/usr/lib/showMeEverything"
@@ -74,7 +83,7 @@ package() {
     install -Dm644 "$repo_dir/VERSION" \
         "$pkgdir/usr/lib/showmeeverything-python/VERSION"
 
-    # Never ship bytecode caches created by local development runs.
+    # Do not ship local Python bytecode caches.
     find "$pkgdir/usr/lib/showmeeverything-python/cli" \
         -type d -name __pycache__ -prune -exec rm -rf {} +
     find "$pkgdir/usr/lib/showmeeverything-python/cli" \
