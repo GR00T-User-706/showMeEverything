@@ -3,7 +3,7 @@ control:
   Version: 3.2.1
   Architecture: all
   Maintainer: GR00T-User-706
-  Depends: python zsh
+  Depends: python
   Description: |-
     showMeEverything command-line tools
      Includes the Zsh CLI and Python CLI implementation.
