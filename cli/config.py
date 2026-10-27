@@ -12,6 +12,7 @@ COLOR_MODE = True
 REGEX = True
 SORT_MODE = False
 EXCLUDE_DOTFILES = False
+INCLUDE_MOUNTS = False
 CURRENT_SHELL = os.path.basename(os.environ.get("SHELL", "")) or "sh"
 
 
