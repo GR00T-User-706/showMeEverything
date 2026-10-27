@@ -46,6 +46,10 @@ OUTPUT OPTIONS:
   --excludeDotFiles, --nodot
       Exclude dotfiles from HOME-based searches.
 
+  --includeMounts
+      Include mounted filesystems beneath HOME, including FUSE/ADBFS.
+      By default HOME searches stay on HOME's filesystem.
+
   -v, --version
       Print SME version/signature.
 
