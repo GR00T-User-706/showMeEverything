@@ -58,7 +58,7 @@ def main(argv=None):
     actions=action_names(argv)
     if not actions:
         print('smecli2: No search flags given'); print('smecli2: for more information try [smecli2 --help]'); return 1
-    config.PIPE_MODE=args.pipe; config.COLOR_MODE=not args.pipe; config.REGEX=not args.glob; config.SORT_MODE=args.sort; config.EXCLUDE_DOTFILES=args.exclude_dotfiles
+    config.PIPE_MODE=args.pipe; config.COLOR_MODE=not args.pipe; config.REGEX=not args.glob; config.SORT_MODE=args.sort; config.EXCLUDE_DOTFILES=args.exclude_dotfiles; config.INCLUDE_MOUNTS=args.include_mounts
     terms=list(args.search_terms)+list(unknown)
     try: emit(actions,terms,args.less)
     except BrokenPipeError: return 0
