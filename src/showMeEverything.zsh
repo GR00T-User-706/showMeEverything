@@ -75,7 +75,6 @@ smecli() {
     local stop_parse=false
     local use_less=false
     local help_requested=false
-    local exclude_dotfiles=false
     local has_ALL=false
     local has_all=false
     local has_system=false
@@ -106,7 +105,8 @@ smecli() {
 
 
         case "$1" in
-           --excludeDotFiles|--nodot) exclude_dotfiles=true ;;
+           --excludeDotFiles|--nodot) EXCLUDE_DOTFILES=true ;;
+            --includeMounts) INCLUDE_MOUNTS=true ;;
             --less) use_less=true ;;
             --sort) SORT_MODE=1 ;;
             --pipe)
