@@ -32,6 +32,8 @@ HEADER=1
 FOOTER=1
 REGEX=1
 SORT_MODE=0
+EXCLUDE_DOTFILES=false
+INCLUDE_MOUNTS=false
 if [ -n "${ZSH_VERSION:-}" ]; then
     current_shell="zsh"
 elif [ -n "${BASH_VERSION:-}" ]; then
