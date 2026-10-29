@@ -95,7 +95,7 @@ This format is intended for:
 
 - `--ALL`, `-A`
   Full system scan including:
-  `/usr`, `/etc`, `/var`, `/opt`, `/boot`, `/lib`, `/bin`, `/sbin`, `/sys`
+  `/bin`, `/boot`, `/dev`, `/etc`, `/home`, `/lib`, `/lib64`, `/mnt`,\n  `/opt`, `/proc`, `/run`, `/sbin`, `/srv`, `/sys`, `/tmp`, `/usr`, `/var`
 
 - `--all`
   Userspace-only scan (excludes kernel/system-level traversal)
