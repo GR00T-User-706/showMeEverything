@@ -38,3 +38,8 @@ package-lock.json
 /showmeeverything/
 /src/build-qml/
 /*.pkg.tar.zst
+
+# Isolated Arch makepkg workspaces and generated packages
+/packaging/arch/*/src/
+/packaging/arch/*/pkg/
+/packaging/arch/*/*.pkg.tar.*

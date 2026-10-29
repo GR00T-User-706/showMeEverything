@@ -2,11 +2,11 @@ readonly SME_SIG_HELP="gr00t-user--706"
 # SME MODULE: HELP
 # The help function and text below are preserved from the original source.
 show_help() {
-    cat <<'EOF'
+    cat <<'EOF' | sed "s/@SME_VERSION@/${SME_VERSION}/g"
 smecli — Show Me Everything CLI
 Author:  Zenrich Shadowstep / GR00T-User-706
 Contact: crypto_code_weaver_syndicate@proton.me
-Version: v3.1.0
+Version: @SME_VERSION@
 
 USAGE:
   smecli [OPTIONS] [SEARCH_TERM ...]

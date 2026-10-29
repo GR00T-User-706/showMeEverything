@@ -1,10 +1,12 @@
-SHORT_HELP = '''smecli — Show Me Everything CLI
+from .. import config
+
+SHORT_HELP = '''smecli2 — Show Me Everything CLI
 Author:  Zenrich Shadowstep / GR00T-User-706
-Version: v3.1.0
+Version: @SME_VERSION@
 
 USAGE:
-  smecli [OPTIONS] [SEARCH_TERM ...]
-  smecli [SEARCH_FLAGS...] [OPTIONS] [SEARCH_TERM ...]
+  smecli2 [OPTIONS] [SEARCH_TERM ...]
+  smecli2 [SEARCH_FLAGS...] [OPTIONS] [SEARCH_TERM ...]
 
 HELP:
   -h, --help              Show this quick help.
@@ -53,25 +55,25 @@ Use --full-help for detailed descriptions, examples, conflict rules, and
 large-output guidance.
 '''
 
-FULL_HELP = '''smecli — Show Me Everything CLI
+FULL_HELP = '''smecli2 — Show Me Everything CLI
 Author:  Zenrich Shadowstep / GR00T-User-706
 Contact: crypto_code_weaver_syndicate@proton.me
-Version: v3.0.0
+Version: @SME_VERSION@
 
 USAGE:
-  smecli [OPTIONS] [SEARCH_TERM]
-  smecli [SEARCH_FLAGS...] [OPTIONS] [SEARCH_TERM]
+  smecli2 [OPTIONS] [SEARCH_TERM]
+  smecli2 [SEARCH_FLAGS...] [OPTIONS] [SEARCH_TERM]
 
 BASIC EXAMPLES:
-  smecli --path python
-  smecli --installed firefox
-  smecli --home notes
-  smecli --all network
-  smecli --ALL usb --less
-  smecli --systemd ssh
-  smecli --packages nmap
-  smecli --not-installed python
-  smecli -c python ssh git
+  smecli2 --path python
+  smecli2 --installed firefox
+  smecli2 --home notes
+  smecli2 --all network
+  smecli2 --ALL usb --less
+  smecli2 --systemd ssh
+  smecli2 --packages nmap
+  smecli2 --not-installed python
+  smecli2 -c python ssh git
 
 IMPORTANT:
   At least one search flag is required.
@@ -220,46 +222,46 @@ MUTUALLY EXCLUSIVE MODES:
 
 COMMON USE:
   Find commands:
-    smecli --command ssh
+    smecli2 --command ssh
 
   Find environment and application variables:
-    smecli --environment ollama
+    smecli2 --environment ollama
 
   Search Ollama-related environment variables:
-    smecli --environment OLLAMA_
+    smecli2 --environment OLLAMA_
 
   Find aliases:
-    smecli --aliases git
+    smecli2 --aliases git
 
   Find installed packages:
-    smecli --installed python
+    smecli2 --installed python
 
   Find package files:
-    smecli --files libssl
+    smecli2 --files libssl
 
   Search home directory:
-    smecli --home project
+    smecli2 --home project
 
   Search system directories:
-    smecli --system firmware
+    smecli2 --system firmware
 
   Big search with pager:
-    smecli --all docker --less
+    smecli2 --all docker --less
 
   Full aggressive scan:
-    smecli --ALL firmware --less
+    smecli2 --ALL firmware --less
 
   Sort search results:
-    smecli --path python --sort
+    smecli2 --path python --sort
 
   Use glob-style matching:
-    smecli --home '*.conf' --glob
+    smecli2 --home '*.conf' --glob
 
   Pipe machine-friendly output:
-    smecli --installed python --pipe
+    smecli2 --installed python --pipe
 
   Exclude dotfiles from HOME searches:
-    smecli --home config --excludeDotFiles
+    smecli2 --home config --excludeDotFiles
 
 NOTES:
   - Regex mode is enabled by default.
@@ -271,7 +273,7 @@ NOTES:
 '''
 
 def show_help():
-    print(SHORT_HELP)
+    print(SHORT_HELP.replace('@SME_VERSION@', config.SME_VERSION))
 
 def show_full_help():
-    print(FULL_HELP)
+    print(FULL_HELP.replace('@SME_VERSION@', config.SME_VERSION))

@@ -1,0 +1,89 @@
+# SME_SIGNATURE=gr00t-user-706
+# Build the GUI package from this directory:
+#   cd packaging/arch/gui
+#   makepkg -si
+#
+# This PKGBUILD lives outside the application's showmeeverything_gui/src tree
+# so makepkg's own src/ workspace cannot collide with application sources.
+
+pkgname=showmeeverything-gui
+pkgver=3.2.1
+pkgrel=1
+pkgdesc='Show Me Everything desktop interfaces (Qt/QML and Tk)'
+arch=('x86_64')
+url='https://github.com/GR00T-User-706/showMeEverything'
+license=('GPL3')
+depends=('qt5-base' 'qt5-declarative' 'qt5-quickcontrols2')
+optdepends=(
+    'showmeeverything-cli: command-line search engine used by the GUI'
+    'python: Python Tkinter GUI fallback'
+    'tk: Python Tkinter GUI fallback'
+)
+makedepends=('qt5-base' 'qt5-declarative' 'qt5-quickcontrols2')
+source=()
+sha256sums=()
+
+repo_dir() {
+    printf '%s\n' "$startdir/../../.."
+}
+
+check() {
+    local root
+    root="$(repo_dir)"
+    local source_version
+    source_version="$(<"$root/VERSION")"
+
+    [[ "$source_version" == "$pkgver" ]] || {
+        error "PKGBUILD pkgver ($pkgver) does not match VERSION ($source_version)"
+        return 1
+    }
+}
+
+build() {
+    local root
+    root="$(repo_dir)"
+    local build_dir="$srcdir/build-qml"
+
+    mkdir -p "$build_dir"
+    cd "$build_dir"
+    qmake-qt5 "$root/showmeeverything_gui/showmeeverything_gui.pro"
+    make
+}
+
+package() {
+    local root
+    root="$(repo_dir)"
+    local source_version
+    source_version="$(<"$root/VERSION")"
+    if [[ "$source_version" != "$pkgver" ]]; then
+        error "VERSION mismatch: PKGBUILD pkgver is $pkgver but VERSION is $source_version"
+        return 1
+    fi
+
+    install -Dm755 "$srcdir/build-qml/showmeeverything_qml" \
+        "$pkgdir/usr/bin/showmeeverything_qml"
+    ln -s showmeeverything_qml "$pkgdir/usr/bin/smegui"
+
+    install -Dm755 "$root/showmeeverything_gui/showmeeverything_tk.py" \
+        "$pkgdir/usr/bin/showmeeverything_tk"
+    ln -s showmeeverything_tk "$pkgdir/usr/bin/smegpy"
+
+    install -Dm644 \
+        "$root/showmeeverything_gui/assets/com.github.gr00t-user-706.showmeeverything-gui-qml.desktop" \
+        "$pkgdir/usr/share/applications/com.github.gr00t-user-706.showmeeverything-gui-qml.desktop"
+    sed -i \
+        -e 's|^Exec=.*|Exec=/usr/bin/showmeeverything_qml|' \
+        -e 's|^Icon=.*|Icon=system-search|' \
+        "$pkgdir/usr/share/applications/com.github.gr00t-user-706.showmeeverything-gui-qml.desktop"
+
+    install -Dm644 \
+        "$root/showmeeverything_gui/assets/com.github.gr00t-user-706.showmeeverything-gui-python.desktop" \
+        "$pkgdir/usr/share/applications/com.github.gr00t-user-706.showmeeverything-gui-python.desktop"
+    sed -i \
+        -e 's|^Exec=.*|Exec=/usr/bin/showmeeverything_tk|' \
+        -e 's|^Icon=.*|Icon=system-search|' \
+        "$pkgdir/usr/share/applications/com.github.gr00t-user-706.showmeeverything-gui-python.desktop"
+
+    install -Dm644 "$root/LICENSE" \
+        "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+}
