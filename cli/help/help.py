@@ -185,7 +185,7 @@ FILESYSTEM SEARCH FLAGS:
 
   --system, -R
       Search major system directories:
-      /usr, /etc, /sys, /dev, /var, /opt, /boot, /lib, /bin, /sbin
+      /bin, /boot, /dev, /etc, /home, /lib, /lib64, /mnt, /opt,\n      /proc, /run, /sbin, /srv, /sys, /tmp, /usr, /var
 
   --usr, -U
       Search /usr.
