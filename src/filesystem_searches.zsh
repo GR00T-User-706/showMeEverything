@@ -23,8 +23,8 @@ search_home_directory() {
     fi
 }
 search_system_dirs() {
-    local info="Searching system directories (/usr, /etc, /sys, /var, /opt, /boot, /lib, /bin, /sbin) for $1..."
-    local dirs=(/usr /etc /sys /dev /var /opt /boot /lib /bin /sbin)
+    local info="Searching system directories (/bin, /boot, /dev, /etc, /home, /lib, /lib64, /mnt, /opt, /proc, /run, /sbin, /srv, /sys, /tmp, /usr, /var) for $1..."
+    local dirs=(/bin /boot /dev /etc /home /lib /lib64 /mnt /opt /proc /run /sbin /srv /sys /tmp /usr /var)
     local d
 
     header0 "$info"
@@ -106,4 +106,3 @@ search_sbin() {
     [ -d /sbin ] || return
     find /sbin -iname "*$1*" "${EXCLUDES[@]}" 2>/dev/null | sme_grep "$1" | sme_sort
 }
-
