@@ -1,3 +1,5 @@
+# makepkg Git working checkout
+/src/showmeeverything/
 # kate backup files
 .*~
 *~
@@ -31,6 +33,11 @@ showmeeverything_qml
 package-lock.json
 .qtc_clangd/
 .data/
+# Arch makepkg output
+/pkg/
+/showmeeverything/
+/src/build-qml/
+/*.pkg.tar.zst
 
 # Isolated Arch makepkg workspaces and generated packages
 /packaging/arch/*/src/

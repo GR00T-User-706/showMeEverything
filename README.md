@@ -102,7 +102,7 @@ smecli2 --version
 smecli2 --help
 ```
 
-The GUI package optionally uses the CLI package as its search backend. The two packages can be installed, upgraded, and removed separately.
+The GUI package depends on the CLI package because both desktop interfaces invoke the CLI as their search backend. The GUI and CLI remain separate package artifacts; pacman installs the CLI dependency automatically when the GUI is selected.
 
 ## Installation
 >- make the install script executable and then us it like 

@@ -13,11 +13,10 @@ pkgdesc='Show Me Everything desktop interfaces (Qt/QML and Tk)'
 arch=('x86_64')
 url='https://github.com/GR00T-User-706/showMeEverything'
 license=('GPL3')
-depends=('qt5-base' 'qt5-declarative' 'qt5-quickcontrols2')
+depends=('showmeeverything-cli' 'qt5-base' 'qt5-declarative' 'qt5-quickcontrols2')
 optdepends=(
-    'showmeeverything-cli: command-line search engine used by the GUI'
-    'python: Python Tkinter GUI fallback'
-    'tk: Python Tkinter GUI fallback'
+    'python: run the optional Tkinter GUI fallback'
+    'tk: run the optional Tkinter GUI fallback'
 )
 makedepends=('qt5-base' 'qt5-declarative' 'qt5-quickcontrols2')
 source=()
