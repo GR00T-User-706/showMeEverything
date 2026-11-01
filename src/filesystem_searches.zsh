@@ -24,7 +24,7 @@ search_home_directory() {
 }
 search_system_dirs() {
     local info="Searching system directories (/usr, /etc, /sys, /var, /opt, /boot, /lib, /bin, /sbin) for $1..."
-    local dirs=(/usr /etc /sys /dev /var /opt /boot /lib /bin /sbin)
+    local dirs=(/usr /etc /sys /dev /var /opt /boot /lib /bin /sbin /mnt /run /proc /srv)
     local d
 
     header0 "$info"

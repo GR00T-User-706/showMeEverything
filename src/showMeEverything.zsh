@@ -17,6 +17,7 @@ source "$SME_MODULE_DIR/shell_searches.zsh"
 source "$SME_MODULE_DIR/package_manager_searches.zsh"
 source "$SME_MODULE_DIR/filesystem_searches.zsh"
 source "$SME_MODULE_DIR/help.zsh"
+source "$SME_MODULE_DIR/termux_searches.zsh"
 
 sme_grep() {
     local gropts=(-i)
@@ -139,6 +140,7 @@ smecli() {
                     search_packages_not_installed
                     search_home_directory
                     search_system_dirs
+                    search_termux_prefix
                 )
             ;;
             --all )
@@ -182,7 +184,7 @@ smecli() {
             --usr | -U ) actions+=(search_usr) ;;
             --var | -V ) actions+=(search_var) ;;
             --opt |  -O ) actions+=(search_opt) ;;
-
+            --prefix | -t ) actions+=(search_termux_prefix) ;;
             --help | -h ) help_requested=true ;;
             *)
                 search_terms+=("$1")
