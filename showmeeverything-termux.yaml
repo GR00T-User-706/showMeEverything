@@ -27,6 +27,9 @@ data_files:
   lib/showMeEverything/shell_searches.zsh:
     source: src/shell_searches.zsh
 
+  lib/showMeEverything/termux_searches.zsh:
+    source: src/termux_searches.zsh
+
   lib/showMeEverything/package_manager_searches.zsh:
     source: src/package_manager_searches.zsh
 
