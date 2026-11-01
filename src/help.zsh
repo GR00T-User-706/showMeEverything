@@ -58,7 +58,7 @@ SEARCH GROUPS:
       PATH, commands, builtins, aliases, functions, manpages,
       systemd units, running processes, kernel modules,
       package repository, installed packages, package file DB,
-      not-installed packages, HOME, and system directories.
+      not-installed packages, HOME, system directories, and the termux $PREFIX.
 
       WARNING:
       Very large output, especially without SEARCH_TERM.
@@ -97,7 +97,9 @@ DOCUMENTATION / PROCESS FLAGS:
 
   --modules, -m
       Search loaded kernel modules.
-
+TERMUX SEARCH FLAGS:
+  --prefix, -t
+      search the termux specific \$PREFIX $PREFIX
 PACKAGE SEARCH FLAGS:
   --packages, -p, --pkg
       Search detected package manager repository/database.
