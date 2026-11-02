@@ -174,3 +174,20 @@ sudo ./install
 ## Security/Privacy
 
 >- No matter what unless you modify the code this tool will never traverse any other users home
+
+
+## Multi-package-manager search
+
+Package searches query every supported package manager detected on PATH, rather than
+stopping at the first match. Supported backends are Pacman, APT/dpkg, DNF, Zypper/RPM,
+and APK. Results from each detected backend are included; an unavailable or failing
+backend does not prevent the remaining backends from running.
+
+Backend stderr and non-zero exit statuses are recorded in a persistent diagnostic log.
+The default location is `$XDG_STATE_HOME/showmeeverything/errors.log`, or
+`$HOME/.local/state/showmeeverything/errors.log` when XDG_STATE_HOME is unset.
+Set `SME_ERROR_LOG` to override the log file path.
+
+In normal output mode, SME reports the log path on stderr when backend diagnostics
+were recorded. In `--pipe` mode, diagnostics are still logged, but no diagnostic
+message is written to stdout or stderr. The stdout result stream remains machine-safe.

@@ -5,7 +5,7 @@ name = "showMeEverything-cli"
 description = "system wide full search engine"
 
 [version]
-initial = "3.2.1"
+initial = "3.3.0"
 source = { type = "text", file = "VERSION" }
 
 [git]

@@ -63,6 +63,10 @@ def main(argv=None):
     try: emit(actions,terms,args.less)
     except BrokenPipeError: return 0
     except Exception as exc: print('smecli2: '+str(exc),file=sys.stderr); return 1
+    from .package_manager_searches.backend import diagnostics
+    errors_logged, error_log = diagnostics()
+    if errors_logged and not config.PIPE_MODE:
+        print(f'Package-manager errors were logged to: {error_log}', file=sys.stderr)
     return 0
 
 if __name__=='__main__': main()

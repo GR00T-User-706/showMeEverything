@@ -1,10 +1,7 @@
-import subprocess
-from .detection import get_package_manager
-from ..output.filtering import filter_results
+from .detection import get_package_managers
+from . import apt, pacman, dnf, zypper, apk
+
 def search_package_repo(pattern=''):
-    pm=get_package_manager()
-    if pm=='pacman': cmd=['pacman','-Sl']
-    elif pm=='apt': cmd=['apt','list']
-    else: return
-    r=subprocess.run(cmd,capture_output=True,text=True,check=False)
-    yield from filter_results(r.stdout.splitlines(),pattern)
+    modules={'apt':apt.repository,'pacman':pacman.repository,'dnf':dnf.repository,'zypper':zypper.repository,'apk':apk.repository}
+    for manager in get_package_managers():
+        yield from modules[manager].search_package_repo(pattern)

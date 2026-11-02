@@ -38,7 +38,7 @@ OUTPUT OPTIONS:
 
   --pipe
       Machine-friendly output:
-      disables ANSI color, headers, and footer.
+      disables ANSI color, headers, and footer. Package backend errors are logged silently in pipe mode.
 
   --glob
       Use literal/glob-style matching instead of regex mode.

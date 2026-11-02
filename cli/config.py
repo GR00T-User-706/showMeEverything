@@ -22,3 +22,5 @@ def terminal_info():
         os.environ.get("USER", ""),
         socket.gethostname(),
     )
+
+# Package-manager diagnostic state is maintained by package_manager_searches.backend.

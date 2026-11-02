@@ -1,6 +1,7 @@
-import subprocess
-from .detection import get_package_manager
+from .detection import get_package_managers
+from . import apt, pacman, dnf, zypper, apk
+
 def search_package_files_db(pattern=''):
-    pm=get_package_manager()
-    if pm=='pacman': yield from subprocess.run(['pacman','-F',pattern],capture_output=True,text=True,check=False).stdout.splitlines()
-    elif pm=='apt': yield from subprocess.run(['dpkg','-S','*'+pattern+'*'],capture_output=True,text=True,check=False).stdout.splitlines()
+    modules={'apt':apt.files,'pacman':pacman.files,'dnf':dnf.files,'zypper':zypper.files,'apk':apk.files}
+    for manager in get_package_managers():
+        yield from modules[manager].search_package_files_db(pattern)

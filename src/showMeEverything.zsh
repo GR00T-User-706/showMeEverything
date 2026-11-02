@@ -251,6 +251,7 @@ smecli() {
 
     #=========================================================#
     # RUN EACH SEARCH ACTION FOR EACH INDIVIDUAL SEARCH TERM
+    rm -f -- "$SME_PACKAGE_ERROR_MARKER"
     #=========================================================#
 
     if [ "$use_less" = true ]; then
@@ -270,6 +271,13 @@ smecli() {
     fi
 
     footer
+    if [[ -f "$SME_PACKAGE_ERROR_MARKER" ]]; then
+        if (( ! PIPE_MODE )); then
+            local error_log_path="${SME_ERROR_LOG:-${XDG_STATE_HOME:-$HOME/.local/state}/showmeeverything/errors.log}"
+            print -u2 -- "Package-manager errors were logged to: $error_log_path"
+        fi
+        rm -f -- "$SME_PACKAGE_ERROR_MARKER"
+    fi
 }
 
 smecli "$@"

@@ -15,7 +15,7 @@ HELP:
 OUTPUT OPTIONS:
   --less                 Internal interactive pager.
   --sort                 Sort results alphabetically, case-insensitive.
-  --pipe                 Machine-friendly output: disables color, headers, footer.
+  --pipe                 Machine-friendly output: disables color, headers, footer. Backend errors are logged silently.
   --glob                 Literal/fixed-string matching.
   --excludeDotFiles,
   --nodot                Exclude dotfiles from HOME searches.
@@ -97,7 +97,8 @@ OUTPUT OPTIONS:
 
   --pipe
       Machine-friendly output:
-      disables ANSI color, headers, and footer.
+      disables ANSI color, headers, and footer. Package-manager stderr and failures
+      are written to the persistent error log without printing diagnostics.
 
   --glob
       Use literal/glob-style matching instead of regex mode.
@@ -168,7 +169,7 @@ DOCUMENTATION / PROCESS FLAGS:
 
 PACKAGE SEARCH FLAGS:
   --packages, -p, --pkg
-      Search detected package manager repository/database.
+      Search every detected package manager repository/database.
 
   --installed, -i
       Search installed packages.
