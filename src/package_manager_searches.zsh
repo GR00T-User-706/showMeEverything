@@ -3,7 +3,7 @@ readonly SME_SIG_PKGMAN="gr00t-user--706"
 # Persist package-manager errors outside the result stream.
 typeset -g SME_PACKAGE_ERRORS_LOGGED=0
 typeset -g SME_PACKAGE_ERROR_LOG=""
-typeset -g SME_PACKAGE_ERROR_MARKER="${TMPDIR:-/tmp}/sme-pm-errors.$"
+typeset -g SME_PACKAGE_ERROR_MARKER="${TMPDIR:-/tmp}/sme-pm-errors-$$"
 sme_pm_run() {
     local manager="$1" operation="$2" term="$3"; shift 3
     local tmp status log_path
@@ -143,8 +143,8 @@ sme_pm_run() {
                 local info="Searching DNF for packages not installed: $1..."
                 header0 "$info"
                 comm -23 \
-                    <(sme_pm_run dnf repository_search "$1" dnf list available | awk 'NR > 1 {print $1}' | sed 's/\.[^.[:space:]]*$//' | sme_grep "$1" | sme_sort | sort -u) \
-                    <(sme_pm_run dnf installed_search "$1" dnf list installed | awk 'NR > 1 {print $1}' | sed 's/\.[^.[:space:]]*$//' | sort -u) | sme_sort
+                    <(sme_pm_run dnf not_installed_available "$1" dnf list available | awk 'NR > 1 {print $1}' | sed 's/\.[^.[:space:]]*$//' | sme_grep "$1" | sme_sort | sort -u) \
+                    <(sme_pm_run dnf not_installed_installed "$1" dnf list installed | awk 'NR > 1 {print $1}' | sed 's/\.[^.[:space:]]*$//' | sort -u) | sme_sort
             }
 
             # --------- files DB ---------- #
@@ -180,7 +180,7 @@ sme_pm_run() {
                 local info="Searching Zypper for packages not installed: $1..."
                 header0 "$info"
                 comm -23 \
-                    <(sme_pm_run zypper repository_search "$1" zypper search | awk 'NR > 4 {print $3}' | sme_grep "$1" | sme_sort | sort -u) \
+                    <(sme_pm_run zypper not_installed_available "$1" zypper search | awk 'NR > 4 {print $3}' | sme_grep "$1" | sme_sort | sort -u) \
                     <(sme_pm_run zypper not_installed_installed "$1" rpm -qa --qf '%{NAME}\n' | sort -u) | sme_sort
             }
 
@@ -217,15 +217,15 @@ sme_pm_run() {
                 local info="Searching APK for packages not installed: $1..."
                 header0 "$info"
                 comm -23 \
-                    <(sme_pm_run apk repository_search "$1" apk search | sed 's/-[0-9].*$//' | sme_grep "$1" | sme_sort | sort -u) \
-                    <(sme_pm_run apk installed_search "$1" apk info | sort -u) | sme_sort
+                    <(sme_pm_run apk not_installed_available "$1" apk search | sed 's/-[0-9].*$//' | sme_grep "$1" | sme_sort | sort -u) \
+                    <(sme_pm_run apk not_installed_installed "$1" apk info | sort -u) | sme_sort
             }
 
             # --------- files DB ---------- #
             apk_files_db_search() {
                 local info="Searching APK file ownership for $1..."
                 header0 "$info"
-                sme_pm_run apk file_database_search "$1" apk info | sme_grep "$1" | sme_sort
+                sme_pm_run apk file_database_search "$1" apk info -L | sme_grep "$1" | sme_sort
             }
         }
     }
