@@ -191,3 +191,7 @@ Set `SME_ERROR_LOG` to override the log file path.
 In normal output mode, SME reports the log path on stderr when backend diagnostics
 were recorded. In `--pipe` mode, diagnostics are still logged, but no diagnostic
 message is written to stdout or stderr. The stdout result stream remains machine-safe.
+
+## Project standards
+
+See [PROJECT_STANDARDS.md](docs/PROJECT_STANDARDS.md) for the project-specific documentation, packaging, contribution, and validation standards.
