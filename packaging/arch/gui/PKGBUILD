@@ -7,7 +7,7 @@
 # so makepkg's own src/ workspace cannot collide with application sources.
 
 pkgname=showmeeverything-gui
-pkgver=3.3.0
+pkgver=3.4.0
 pkgrel=1
 pkgdesc='Show Me Everything desktop interfaces (Qt/QML and Tk)'
 arch=('x86_64')

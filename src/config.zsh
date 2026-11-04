@@ -1,13 +1,7 @@
 # SME MODULE: CONFIG
 # The statements below are preserved from the original showMeEverything source.
 readonly SME_SIG_CONFIG="gr00t-user--706"
-SME_VERSION="unknown"
-if [[ -r "$SME_MODULE_DIR/VERSION" ]]; then
-    SME_VERSION="$(cat "$SME_MODULE_DIR/VERSION")"
-elif [[ -r "$SME_MODULE_DIR/../VERSION" ]]; then
-    SME_VERSION="$(cat "$SME_MODULE_DIR/../VERSION")"
-fi
-readonly SME_VERSION
+SME_VERSION="3.4.0"
 # GLOBAL CONFIG DEFAULT STATE
 # VALID STATES:
 # PIPE_MODE=0 COLOR_MODE=1  -> human readable ANSI output

@@ -1,6 +1,6 @@
 control:
   Package: showmeeverything-cli
-  Version: 3.3.0
+  Version: 3.4.0
   Architecture: all
   Maintainer: GR00T-User-706
   Depends: python
@@ -16,10 +16,10 @@ data_files:
 
   lib/showMeEverything/showMeEverything.zsh:
     source: src/showMeEverything.zsh
-    perm: "755"
+    perm: '755'
     symlink_destinations:
-      - bin/showMeEverything
-      - bin/smecli
+    - bin/showMeEverything
+    - bin/smecli
 
   lib/showMeEverything/config.zsh:
     source: src/config.zsh
@@ -41,7 +41,7 @@ data_files:
 
   bin/smecli2:
     source: packaging/smecli2
-    perm: "755"
+    perm: '755'
 
   lib/python3.14/site-packages/cli:
     source: cli
