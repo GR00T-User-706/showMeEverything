@@ -5,6 +5,11 @@ All notable changes to **showMeEverything** are documented here.
 The repository-root VERSION file is the single source of truth for package versions.
 Release manifests and package metadata must stay synchronized with it.
 
+## [Unreleased]
+
+### Documentation
+- Added project-specific standards documenting the original CLI as the core product, current limited installer scope, optional GUI boundaries, and gradual productization.
+
 ## [3.3.0] - 2026-11-02
 
 ### Added
