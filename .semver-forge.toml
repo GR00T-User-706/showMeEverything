@@ -10,7 +10,7 @@ source = { type = "text", file = "VERSION" }
 
 [git]
 tag_prefix = "v"
-baseline = "4cd36049f947d4643d4f6b1e4ddf8f0c4a5a86bb"
+baseline = "c957f7b3731d8e62b8458e4e019e686bfd841015"
 require_clean = true
 unknown_commit = "ignore"
 merge_commits = "ignore"
@@ -27,5 +27,5 @@ perf = "patch"
 revert = "patch"
 
 [sync]
-targets = [{ type = "text", file = "VERSION" }, { type = "shell", file = "src/config.zsh", key = "SME_VERSION" }]
+targets = [{ type = "text", file = "VERSION" }, { type = "shell", file = "src/config.zsh", key = "SME_VERSION" }, { type = "yaml", file = "showmeeverything-termux.yaml", key = "control.Version" }, { type = "shell", file = "packaging/arch/cli/PKGBUILD", key = "pkgver" }, { type = "shell", file = "packaging/arch/gui/PKGBUILD", key = "pkgver" }]
 
