@@ -80,6 +80,7 @@ smecli() {
     local has_ALL=false
     local has_all=false
     local has_system=false
+    local package_manager_filter=""
     if [ "${SMECLI_GUI_MODE:-0}" -eq 1 ]; then
         PIPE_MODE=1
     COLOR_MODE=0
@@ -117,6 +118,11 @@ smecli() {
                 FOOTER=0
             ;;
             --glob) REGEX=0 ;;
+            --apt) package_manager_filter="apt" ;;
+            --pacman) package_manager_filter="pacman" ;;
+            --dnf) package_manager_filter="dnf" ;;
+            --zypper) package_manager_filter="zypper" ;;
+            --apk) package_manager_filter="apk" ;;
             -v|--version)
                 echo "SME_VERSION: $SME_VERSION"
                 echo "SME_SIGNATURE: $SME_SIGNATURE"
@@ -248,6 +254,15 @@ smecli() {
     # An empty term preserves the existing behavior: search without a filter.
     local -a terms_to_search=("${search_terms[@]}")
     [ ${#terms_to_search[@]} -eq 0 ] && terms_to_search=("")
+
+    #=========================================================#
+    # PACKAGE MANAGER SELECTION
+    #=========================================================#
+    if [ -n "$package_manager_filter" ]; then
+        SME_PACKAGE_MANAGER_FILTER="$package_manager_filter"
+    else
+        unset SME_PACKAGE_MANAGER_FILTER
+    fi
 
     #=========================================================#
     # RUN EACH SEARCH ACTION FOR EACH INDIVIDUAL SEARCH TERM
