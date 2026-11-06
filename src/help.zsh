@@ -113,6 +113,24 @@ PACKAGE SEARCH FLAGS:
   --files, -F
       Search package-managed file database / file ownership.
 
+  PACKAGE MANAGER SELECTION:
+  --apt
+      Restrict package searches to APT/dpkg.
+
+  --pacman
+      Restrict package searches to Pacman.
+
+  --dnf
+      Restrict package searches to DNF.
+
+  --zypper
+      Restrict package searches to Zypper/RPM.
+
+  --apk
+      Restrict package searches to APK.
+
+  Without one of these flags, package searches query every detected supported package manager.
+
 FILESYSTEM SEARCH FLAGS:
   --home, -H
       Search $HOME.
