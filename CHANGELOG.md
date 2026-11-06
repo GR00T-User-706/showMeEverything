@@ -7,6 +7,12 @@ Release manifests and package metadata must stay synchronized with it.
 
 ## [Unreleased]
 
+### Added
+- Added optional package-manager selection flags (`--apt`, `--pacman`, `--dnf`, `--zypper`, and `--apk`) so package searches can target one backend when their output is being consumed by a specific package manager.
+
+### Fixed
+- Fixed Zsh package-manager diagnostic logging to use the captured exit-status variable instead of the read-only `status` parameter.
+
 ### Documentation
 - Added project-specific standards documenting the original CLI as the core product, current limited installer scope, optional GUI boundaries, and gradual productization.
 
