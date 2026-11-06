@@ -215,7 +215,7 @@ smecli() {
     if [ "$has_ALL" = true ] || [ "$has_all" = true ]; then
         for fn in "${actions[@]}"; do
             case "$fn" in
-                search_path|search_loaded_commands|search_builtins|search_aliases|search_shell_functions|search_manpages|search_systemd_units|search_running_processes|loaded_kernel_modules|search_package_repo|search_installed_packages|search_package_files_db|search_packages_not_installed|search_home_directory|search_system_dirs)
+                search_path|search_loaded_commands|search_builtins|search_aliases|search_shell_functions|search_manpages|search_systemd_units|search_running_processes|loaded_kernel_modules|search_package_repo|search_installed_packages|search_package_files_db|search_packages_not_installed|search_home_directory|search_system_dirs|search_termux_prefix)
                     # allowed (part of ALL/all)
                     ;;
                 *)
