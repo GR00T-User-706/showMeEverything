@@ -16,7 +16,7 @@ sme_pm_run() {
         SME_PACKAGE_ERROR_LOG="$log_path"
         : > "$SME_PACKAGE_ERROR_MARKER"
         mkdir -p -- "${log_path:h}" 2>/dev/null || true
-        { print -r -- "[$(date '+%Y-%m-%d %H:%M:%S')]"; print -r -- "MANAGER: $manager"; print -r -- "OPERATION: $operation"; print -r -- "SEARCH_TERM: $term"; print -r -- "COMMAND: $*"; print -r -- "EXIT_STATUS: $status"; print -r -- "STDERR:"; cat "$tmp"; print -r -- "----------------------------------------"; } >> "$log_path" 2>/dev/null
+        { print -r -- "[$(date '+%Y-%m-%d %H:%M:%S')]"; print -r -- "MANAGER: $manager"; print -r -- "OPERATION: $operation"; print -r -- "SEARCH_TERM: $term"; print -r -- "COMMAND: $*"; print -r -- "EXIT_STATUS: $condition"; print -r -- "STDERR:"; cat "$tmp"; print -r -- "----------------------------------------"; } >> "$log_path" 2>/dev/null
     fi
     rm -f -- "$tmp"
     return 0
