@@ -1,4 +1,4 @@
-readonly SME_SIG_PKGMAN="gr00t-user--706"
+_readonly SME_SIG_PKGMAN="gr00t-user--706"
 
 # Persist package-manager errors outside the result stream.
 typeset -g SME_PACKAGE_ERRORS_LOGGED=0
@@ -6,11 +6,11 @@ typeset -g SME_PACKAGE_ERROR_LOG=""
 typeset -g SME_PACKAGE_ERROR_MARKER="${TMPDIR:-/tmp}/sme-pm-errors-$$"
 sme_pm_run() {
     local manager="$1" operation="$2" term="$3"; shift 3
-    local tmp status log_path
+    local tmp condition log_path
     tmp="$(mktemp "${TMPDIR:-/tmp}/sme-pm.XXXXXX")" || return 1
     "$@" 2>"$tmp"
-    status=$?
-    if (( status != 0 )) || [[ -s "$tmp" ]]; then
+    condition=$?
+    if (( condition != 0 )) || [[ -s "$tmp" ]]; then
         log_path="${SME_ERROR_LOG:-${XDG_STATE_HOME:-$HOME/.local/state}/showmeeverything/errors.log}"
         SME_PACKAGE_ERRORS_LOGGED=1
         SME_PACKAGE_ERROR_LOG="$log_path"

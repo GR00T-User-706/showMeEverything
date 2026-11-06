@@ -6,7 +6,7 @@
 # VERSION is the source of truth; pkgver must match it.
 
 pkgname=showmeeverything-cli
-pkgver=3.4.0
+pkgver=3.4.1
 pkgrel=1
 pkgdesc='Show Me Everything command-line tools (Zsh and Python)'
 arch=('any')
