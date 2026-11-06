@@ -35,6 +35,13 @@ sme_pm_run() {
             command -v dnf >/dev/null 2>&1 && managers+=(dnf)
             command -v zypper >/dev/null 2>&1 && command -v rpm >/dev/null 2>&1 && managers+=(zypper)
             command -v apk >/dev/null 2>&1 && managers+=(apk)
+            if [[ -n "${SME_PACKAGE_MANAGER_FILTER:-}" ]]; then
+                case "$SME_PACKAGE_MANAGER_FILTER" in
+                    pacman|apt|dnf|zypper|apk)
+                        managers=("${(@)managers:#^${SME_PACKAGE_MANAGER_FILTER}$}")
+                        ;;
+                esac
+            fi
             print -rl -- "${managers[@]}"
         }
     }
