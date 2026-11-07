@@ -1,4 +1,4 @@
-_readonly SME_SIG_PKGMAN="gr00t-user--706"
+readonly SME_SIG_PKGMAN="gr00t-user--706"
 
 # Persist package-manager errors outside the result stream.
 typeset -g SME_PACKAGE_ERRORS_LOGGED=0
