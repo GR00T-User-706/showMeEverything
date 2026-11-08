@@ -46,3 +46,6 @@ data_files:
   lib/python3.14/site-packages/cli:
     source: cli
     source_recurse: true
+
+  lib/python3.14/site-packages/VERSION:
+    source: VERSION

@@ -10,7 +10,7 @@ source = { type = "text", file = "VERSION" }
 
 [git]
 tag_prefix = "v"
-baseline = "2839c3ada1e2b404cd909138569e2886581787e3"
+baseline = "6c3fba633996de1b17f32e92efadafbe6915e421"
 require_clean = true
 unknown_commit = "ignore"
 merge_commits = "ignore"
